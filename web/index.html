@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./index.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-row no-gutters>
+                <v-col cols="4">
+                    <v-btn class="ma-1" :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary" @click="getData_ohlcv">
+                        OHLCVデータ取得
+                    </v-btn>
+                    <v-btn class="ma-1" :loading="loading_liquid" :disabled="disabled_liquid" color="secondary" @click="getData_liquid">
+                        清算データ取得
+                    </v-btn>
+                </v-col>
+                <v-col cols="2">
+                    <v-menu v-model="from_date_menu" :close-on-content-click="false" :return-value.sync="date" transition="scale-transition" offset-y min-width="auto">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-text-field v-model="from_date" label="From Date" prepend-icon="mdi-calendar" readonly clearable v-bind="attrs" v-on="on"></v-text-field>
+                          </template>
+                        <v-date-picker v-model="from_date" no-title scrollable>
+                        </v-date-picker>
+                    </v-menu>
+                </v-col>
+                <v-col cols="2">
+                    <v-menu v-model="to_date_menu" :close-on-content-click="false" :return-value.sync="date" transition="scale-transition" offset-y min-width="auto">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-text-field v-model="to_date" label="To Date" prepend-icon="mdi-calendar" readonly clearable v-bind="attrs" v-on="on"></v-text-field>
+                          </template>
+                        <v-date-picker v-model="to_date" no-title scrollable>
+                        </v-date-picker>
+                    </v-menu>
+                </v-col>
+            </v-row>
+            <v-row no-gutters>
+                <v-col cols="12" sm="12" md="12">
+                    <trading-vue class="ma-0" :data="this.$data" :width="width" :height="height"></trading-vue>
+                </v-col>
+            </v-row>
+        </v-app>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/trading-vue-js@1.0.2/dist/trading-vue.min.js"></script>
+    <script type="text/javascript" src="/eel.js"></script>
+    <script src="./index.js"></script>
+</body>
+
+</html>
