@@ -15,36 +15,40 @@
 <body>
     <div id="app">
         <v-app>
+            <v-container fluid class="grey lighten-5">
+                <v-row no-gutters>
+                    <v-col cols="auto">
+                        <v-btn class="ma-1" :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary"
+                            @click="getData_ohlcv">
+                            OHLCVデータ取得
+                        </v-btn>
+                    </v-col>
+                    <v-col cols="auto">
+                        <v-menu v-model="from_date_menu" :close-on-content-click="false" :return-value.sync="date"
+                            transition="scale-transition" offset-y min-width="auto">
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-text-field v-model="from_date" label="From Date" prepend-icon="mdi-calendar" readonly
+                                    clearable v-bind="attrs" v-on="on"></v-text-field>
+                            </template>
+                            <v-date-picker v-model="from_date" no-title scrollable>
+                            </v-date-picker>
+                        </v-menu>
+                    </v-col>
+                    <v-col cols="auto">
+                        <v-menu v-model="to_date_menu" :close-on-content-click="false" :return-value.sync="date"
+                            transition="scale-transition" offset-y min-width="auto">
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-text-field v-model="to_date" label="To Date" prepend-icon="mdi-calendar" readonly
+                                    clearable v-bind="attrs" v-on="on"></v-text-field>
+                            </template>
+                            <v-date-picker v-model="to_date" no-title scrollable>
+                            </v-date-picker>
+                        </v-menu>
+                    </v-col>
+                </v-row>
+            </v-container>
             <v-row no-gutters>
-                <v-col cols="4">
-                    <v-btn class="ma-1" :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary" @click="getData_ohlcv">
-                        OHLCVデータ取得
-                    </v-btn>
-                    <v-btn class="ma-1" :loading="loading_liquid" :disabled="disabled_liquid" color="secondary" @click="getData_liquid">
-                        清算データ取得
-                    </v-btn>
-                </v-col>
-                <v-col cols="2">
-                    <v-menu v-model="from_date_menu" :close-on-content-click="false" :return-value.sync="date" transition="scale-transition" offset-y min-width="auto">
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-text-field v-model="from_date" label="From Date" prepend-icon="mdi-calendar" readonly clearable v-bind="attrs" v-on="on"></v-text-field>
-                          </template>
-                        <v-date-picker v-model="from_date" no-title scrollable>
-                        </v-date-picker>
-                    </v-menu>
-                </v-col>
-                <v-col cols="2">
-                    <v-menu v-model="to_date_menu" :close-on-content-click="false" :return-value.sync="date" transition="scale-transition" offset-y min-width="auto">
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-text-field v-model="to_date" label="To Date" prepend-icon="mdi-calendar" readonly clearable v-bind="attrs" v-on="on"></v-text-field>
-                          </template>
-                        <v-date-picker v-model="to_date" no-title scrollable>
-                        </v-date-picker>
-                    </v-menu>
-                </v-col>
-            </v-row>
-            <v-row no-gutters>
-                <v-col cols="12" sm="12" md="12">
+                <v-col>
                     <trading-vue class="ma-0" :data="this.$data" :width="width" :height="height"></trading-vue>
                 </v-col>
             </v-row>

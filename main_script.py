@@ -1,11 +1,8 @@
-import eel
+import eel # pip install eel
 import ccxt
-from datetime import date, datetime
-import calendar
 import asyncio
 import pandas_ta as ta  # pip install -U git+https://github.com/twopirllc/pandas-ta
 import pandas as pd  # pip install pandas
-from pybit import WebSocket
 import sub_script as utility
 
 # python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
@@ -85,24 +82,6 @@ def get_cci(timestamp, high, low, close, length):
     df['cci'] = ta.cci(df['high'], df['low'], df['close'], length)
     return df.loc[:,['timestamp', 'cci']].to_json()
 
-
-@eel.expose
-def get_liquid():
-    asyncio.get_event_loop().run_in_executor(None, extend_ws_auth)
-    pass
-
-
-def extend_ws_auth():
-    subs = ["liquidation"]
-    ws = WebSocket("wss://stream.bybit.com/realtime", subscriptions=subs)
-
-    while True:
-        data = ws.fetch(subs[0])
-        if data:
-            print(data)
-            pass
-        pass
-    pass
 
 
 if __name__ == '__main__':

@@ -9,8 +9,6 @@ var app = new Vue({
     data: {
         loading_ohlcv: false,
         disabled_ohlcv: false,
-        loading_liquid: false,
-        disabled_liquid: false,
         chart: null,
         onchart: [],
         offchart: [],
@@ -82,15 +80,6 @@ var app = new Vue({
             }
 
             this.loading_ohlcv = false;
-        },
-        async getData_liquid() {
-            this.loading_liquid = true;
-            this.disabled_liquid = true;
-
-
-            let liquid = await eel.get_liquid()();
-
-            this.loading_liquid = false;
         },
         handleResize() {
             this.width = window.innerWidth;
