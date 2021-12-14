@@ -18,8 +18,7 @@
             <v-container fluid class="grey lighten-5">
                 <v-row no-gutters>
                     <v-col cols="auto">
-                        <v-btn class="ma-1" :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary"
-                            @click="getData_ohlcv">
+                        <v-btn :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary" @click="getData_ohlcv" small>
                             OHLCVデータ取得
                         </v-btn>
                     </v-col>
@@ -27,8 +26,9 @@
                         <v-menu v-model="from_date_menu" :close-on-content-click="false" :return-value.sync="date"
                             transition="scale-transition" offset-y min-width="auto">
                             <template v-slot:activator="{ on, attrs }">
-                                <v-text-field v-model="from_date" label="From Date" prepend-icon="mdi-calendar" readonly
-                                    clearable v-bind="attrs" v-on="on"></v-text-field>
+                                <v-text-field class="ma-1" v-model="from_date" label="From Date"
+                                    prepend-icon="mdi-calendar" readonly clearable v-bind="attrs" v-on="on" dense>
+                                </v-text-field>
                             </template>
                             <v-date-picker v-model="from_date" no-title scrollable>
                             </v-date-picker>
@@ -38,12 +38,34 @@
                         <v-menu v-model="to_date_menu" :close-on-content-click="false" :return-value.sync="date"
                             transition="scale-transition" offset-y min-width="auto">
                             <template v-slot:activator="{ on, attrs }">
-                                <v-text-field v-model="to_date" label="To Date" prepend-icon="mdi-calendar" readonly
-                                    clearable v-bind="attrs" v-on="on"></v-text-field>
+                                <v-text-field class="ma-1" v-model="to_date" label="To Date" prepend-icon="mdi-calendar"
+                                    readonly clearable v-bind="attrs" v-on="on" dense></v-text-field>
                             </template>
                             <v-date-picker v-model="to_date" no-title scrollable>
                             </v-date-picker>
                         </v-menu>
+                    </v-col>
+                    <v-spacer></v-spacer>
+                    <v-col cols="auto">
+                        <v-bottom-sheet v-model="sheet">
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn color="secondary" dark v-bind="attrs" v-on="on" small>
+                                    インジケーター
+                                </v-btn>
+                            </template>
+                            <v-sheet class="text-center" height="200px">
+                                <v-row no-gutters>
+                                    <v-col cols="auto">
+                                        <v-switch class="ma-1" v-model="switch1" label="VWMA 20" :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary" @change="changed_vwma20" dense>
+                                        </v-switch>
+                                    </v-col>
+                                    <v-col cols="auto">
+                                        <v-switch class="ma-1" v-model="switch_vwma25.value" label="VWMA 25" :loading="switch_vwma25.loading" :disabled="switch_vwma25.loading" color="secondary" @change="changed_vwma25" dense>
+                                        </v-switch>
+                                    </v-col>
+                                </v-row>
+                            </v-sheet>
+                        </v-bottom-sheet>
                     </v-col>
                 </v-row>
             </v-container>

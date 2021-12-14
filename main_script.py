@@ -24,7 +24,7 @@ def get_ohlcv(from_date: str, to_date: str):
     # 1609459200000 <- '2021-01-01'
     from_timestamp = utility.dateToTimestamp(from_date)
     to_timestamp = utility.dateToTimestamp(to_date)
-    print(f'OHLCV取得: FROM={from_date}, TO={to_date}')
+    print(f'get_ohlcv: FROM={from_date}, TO={to_date}')
 
     ohlcv_df = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
     bybit = ccxt.bybit()
@@ -64,6 +64,7 @@ def get_ohlcv(from_date: str, to_date: str):
 
 @eel.expose
 def get_vwma(timestamp, close, volume, length):
+    print(f'get_vwma: length={length}')
     df = pd.DataFrame()
     df['timestamp'] = pd.DataFrame.from_dict(timestamp, orient='index')
     df['close'] = pd.DataFrame.from_dict(close, orient='index')
@@ -74,6 +75,7 @@ def get_vwma(timestamp, close, volume, length):
 
 @eel.expose
 def get_cci(timestamp, high, low, close, length):
+    print(f'get_cci: length={length}')
     df = pd.DataFrame()
     df['timestamp'] = pd.DataFrame.from_dict(timestamp, orient='index')
     df['high'] = pd.DataFrame.from_dict(high, orient='index')

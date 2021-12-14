@@ -1,5 +1,7 @@
 const TradingVue = window['TradingVueJs'].TradingVue;
 
+let ohlcv_data = null;
+
 var app = new Vue({
     el: '#app',
     vuetify: new Vuetify(),
@@ -8,7 +10,6 @@ var app = new Vue({
     },
     data: {
         loading_ohlcv: false,
-        disabled_ohlcv: false,
         chart: null,
         onchart: [],
         offchart: [],
@@ -17,7 +18,12 @@ var app = new Vue({
         from_date: '2021-11-01',
         to_date: '',
         from_date_menu: false,
-        to_date_menu: false
+        to_date_menu: false,
+        switch_show_vwma20: true,
+        switch_loading_vwma20: false,
+        sheet: false,
+        switch1: false,
+        switch_vwma25: { loading: false, value: false }
     },
     created() {
         const d = new Date();
@@ -31,6 +37,7 @@ var app = new Vue({
             const ohlcv_df = await eel.get_ohlcv(this.from_date, this.to_date)();
             if (ohlcv_df != null) {
                 const ohlcv = JSON.parse(ohlcv_df);
+                ohlcv_data = ohlcv;
 
                 let ohlcvData = []
                 let idx = 0;
@@ -41,19 +48,6 @@ var app = new Vue({
                 }
                 this.chart = { name: 'BTCUSDT', type: 'Candles', data: ohlcvData };
 
-                // VWMA 20
-                const vwma20_df = await eel.get_vwma(ohlcv.timestamp, ohlcv.close, ohlcv.volume, 20)();
-                const vwma20 = JSON.parse(vwma20_df);
-                debugger;
-                let vwma20_data = []
-                idx = 0;
-                while (true) {
-                    if (vwma20.timestamp[idx] == null) break;
-                    vwma20_data.push([vwma20.timestamp[idx], vwma20.vwma[idx]]);
-                    idx += 1;
-                }
-                this.onchart.push({ name: 'VWMA, 20', type: 'EMA', data: vwma20_data });
-
                 // VWMA 25
                 const vwma25_df = await eel.get_vwma(ohlcv.timestamp, ohlcv.close, ohlcv.volume, 25)();
                 const vwma25 = JSON.parse(vwma25_df);
@@ -63,6 +57,13 @@ var app = new Vue({
                     if (ohlcv.timestamp[idx] == null) break;
                     vwma25_data.push([vwma25.timestamp[idx], vwma25.vwma[idx]]);
                     idx += 1;
+                }
+                for (let index = 0; index < this.onchart.length; index++) {
+                    const element = this.onchart[index];
+                    if (element.name == 'VWMA, 25') {
+                        this.onchart.splice(index, 1);
+                        break;
+                    }
                 }
                 this.onchart.push({ name: 'VWMA, 25', type: 'EMA', data: vwma25_data });
 
@@ -76,10 +77,48 @@ var app = new Vue({
                     cci25_data.push([cci25.timestamp[idx], cci25.cci[idx]]);
                     idx += 1;
                 }
+                for (let index = 0; index < this.offchart.length; index++) {
+                    const element = this.offchart[index];
+                    if (element.name == 'CCI, 25') {
+                        this.offchart.splice(index, 1);
+                        break;
+                    }
+                }
                 this.offchart.push({ name: 'CCI, 25', type: 'SMA', data: cci25_data });
             }
 
             this.loading_ohlcv = false;
+        },
+        async changed_vwma20(value) {
+
+            for (let index = 0; index < this.onchart.length; index++) {
+                const element = this.onchart[index];
+                if (element.name == 'VWMA, 20') {
+                    this.onchart.splice(index, 1);
+                    break;
+                }
+            }
+
+            if (value) {
+
+                // VWMA 20
+                const vwma20_df = await eel.get_vwma(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.volume, 20)();
+                const vwma20 = JSON.parse(vwma20_df);
+                let vwma20_data = []
+                idx = 0;
+                while (true) {
+                    if (vwma20.timestamp[idx] == null) break;
+                    vwma20_data.push([vwma20.timestamp[idx], vwma20.vwma[idx]]);
+                    idx += 1;
+                }
+                this.onchart.push({ name: 'VWMA, 20', type: 'EMA', data: vwma20_data });
+
+            } else {
+
+            }
+        },
+        async changed_vwma25() {
+            this.switch_vwma25.loading = this.switch_vwma25.value;
         },
         handleResize() {
             this.width = window.innerWidth;
