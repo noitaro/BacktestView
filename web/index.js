@@ -9,6 +9,9 @@ var app = new Vue({
         'trading-vue': TradingVue
     },
     data: {
+        dialog1: false,
+        dialog2: false,
+        dialog3: false,
         loading_ohlcv: false,
         chart: null,
         onchart: [],
@@ -116,6 +119,10 @@ var app = new Vue({
             } else {
 
             }
+        },
+        async run_backtest() {
+            await eel.run_backtest()();
+
         },
         async changed_vwma25() {
             this.switch_vwma25.loading = this.switch_vwma25.value;

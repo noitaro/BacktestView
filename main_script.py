@@ -4,6 +4,7 @@ import asyncio
 import pandas_ta as ta  # pip install -U git+https://github.com/twopirllc/pandas-ta
 import pandas as pd  # pip install pandas
 import sub_script as utility
+import importlib
 
 # python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
 
@@ -24,6 +25,9 @@ def get_ohlcv(from_date: str, to_date: str):
     # 1609459200000 <- '2021-01-01'
     from_timestamp = utility.dateToTimestamp(from_date)
     to_timestamp = utility.dateToTimestamp(to_date)
+    if from_timestamp >= to_timestamp:
+        return None
+
     print(f'get_ohlcv: FROM={from_date}, TO={to_date}')
 
     ohlcv_df = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -84,6 +88,19 @@ def get_cci(timestamp, high, low, close, length):
     df['cci'] = ta.cci(df['high'], df['low'], df['close'], length)
     return df.loc[:,['timestamp', 'cci']].to_json()
 
+@eel.expose
+def run_backtest():
+
+    try:
+        module = importlib.import_module('helloworld.py')
+        method = getattr(module, 'bb_strategy_directed')
+        method()
+    except ModuleNotFoundError:
+        print('モジュールが見つからない')
+    except AttributeError:
+        print('メソッドが見つからない')
+
+    pass
 
 
 if __name__ == '__main__':
