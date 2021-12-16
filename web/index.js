@@ -22,11 +22,10 @@ var app = new Vue({
         to_date: '',
         from_date_menu: false,
         to_date_menu: false,
-        switch_show_vwma20: true,
-        switch_loading_vwma20: false,
         sheet: false,
-        switch1: false,
-        switch_vwma25: { loading: false, value: false },
+        switch_vwma20: { loading: false, isChecked: false },
+        switch_vwma25: { loading: false, isChecked: false },
+        switch_cci25: { loading: false, isChecked: false },
         backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false }
     },
     created() {
@@ -43,91 +42,66 @@ var app = new Vue({
                 const ohlcv = JSON.parse(ohlcv_df);
                 ohlcv_data = ohlcv;
 
-                let ohlcvData = []
-                let idx = 0;
-                while (true) {
-                    if (ohlcv.timestamp[idx] == null) break;
-                    ohlcvData.push([ohlcv.timestamp[idx], ohlcv.open[idx], ohlcv.high[idx], ohlcv.low[idx], ohlcv.close[idx], ohlcv.volume[idx]]);
-                    idx += 1;
-                }
-                this.chart = { name: 'BTCUSDT', type: 'Candles', data: ohlcvData };
-
-                // VWMA 25
-                const vwma25_df = await eel.get_vwma(ohlcv.timestamp, ohlcv.close, ohlcv.volume, 25)();
-                const vwma25 = JSON.parse(vwma25_df);
-                let vwma25_data = []
-                idx = 0;
-                while (true) {
-                    if (ohlcv.timestamp[idx] == null) break;
-                    vwma25_data.push([vwma25.timestamp[idx], vwma25.vwma[idx]]);
-                    idx += 1;
-                }
-                for (let index = 0; index < this.onchart.length; index++) {
-                    const element = this.onchart[index];
-                    if (element.name == 'VWMA, 25') {
-                        this.onchart.splice(index, 1);
-                        break;
-                    }
-                }
-                this.onchart.push({ name: 'VWMA, 25', type: 'EMA', data: vwma25_data });
-
-                // CCI 25
-                const cci25_df = await eel.get_cci(ohlcv.timestamp, ohlcv.close, ohlcv.close, ohlcv.close, 25)();
-                const cci25 = JSON.parse(cci25_df);
-                let cci25_data = []
-                idx = 0;
-                while (true) {
-                    if (ohlcv.timestamp[idx] == null) break;
-                    cci25_data.push([cci25.timestamp[idx], cci25.cci[idx]]);
-                    idx += 1;
-                }
-                for (let index = 0; index < this.offchart.length; index++) {
-                    const element = this.offchart[index];
-                    if (element.name == 'CCI, 25') {
-                        this.offchart.splice(index, 1);
-                        break;
-                    }
-                }
-                this.offchart.push({ name: 'CCI, 25', type: 'SMA', data: cci25_data });
+                const chart_data = get_chart_data(ohlcv.timestamp, [ohlcv.open, ohlcv.high, ohlcv.low, ohlcv.close, ohlcv.volume]);
+                this.chart = { name: 'BTCUSDT', type: 'Candles', data: chart_data };
             }
 
             this.loading_ohlcv = false;
         },
-        async changed_vwma20(value) {
+        async changed_vwma20() {
+            this.switch_vwma20.loading = true;
 
-            for (let index = 0; index < this.onchart.length; index++) {
-                const element = this.onchart[index];
-                if (element.name == 'VWMA, 20') {
-                    this.onchart.splice(index, 1);
-                    break;
-                }
-            }
+            array_clear(this.onchart, 'VWMA, 20');
 
-            if (value) {
-
+            if (this.switch_vwma20.isChecked) {
                 // VWMA 20
                 const vwma20_df = await eel.get_vwma(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.volume, 20)();
                 const vwma20 = JSON.parse(vwma20_df);
-                let vwma20_data = []
-                idx = 0;
-                while (true) {
-                    if (vwma20.timestamp[idx] == null) break;
-                    vwma20_data.push([vwma20.timestamp[idx], vwma20.vwma[idx]]);
-                    idx += 1;
-                }
-                this.onchart.push({ name: 'VWMA, 20', type: 'EMA', data: vwma20_data });
-
-            } else {
-
+                const chart_data = get_chart_data(vwma20.timestamp, [vwma20.vwma]);
+                this.onchart.push({ name: 'VWMA, 20', type: 'EMA', data: chart_data });
             }
+
+            this.switch_vwma20.loading = false;
+        },
+        async changed_vwma25() {
+            this.switch_vwma25.loading = true;
+
+            array_clear(this.onchart, 'VWMA, 25');
+
+            if (this.switch_vwma25.isChecked) {
+                // VWMA 25
+                const vwma25_df = await eel.get_vwma(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.volume, 25)();
+                const vwma25 = JSON.parse(vwma25_df);
+                const chart_data = get_chart_data(vwma25.timestamp, [vwma25.vwma]);
+                this.onchart.push({ name: 'VWMA, 25', type: 'EMA', data: chart_data });
+            }
+
+            this.switch_vwma25.loading = false;
+        },
+        async changed_cci25() {
+            this.switch_cci25.loading = true;
+
+            array_clear(this.offchart, 'CCI, 25');
+
+            if (this.switch_cci25.isChecked) {
+
+                // CCI 25
+                const cci25_df = await eel.get_cci(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.close, ohlcv_data.close, 25)();
+                const cci25 = JSON.parse(cci25_df);
+                const chart_data = get_chart_data(cci25.timestamp, [cci25.cci]);
+                this.offchart.push({ name: 'CCI, 25', type: 'SMA', data: chart_data });
+            }
+
+            this.switch_cci25.loading = false;
         },
         async run_backtest() {
             this.backtest.loading = true;
-            await eel.run_backtest(this.backtest.module_name, this.backtest.method_name)();
+
+            if (ohlcv_data != null) {
+                await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name)();
+            }
+
             this.backtest.loading = false;
-        },
-        async changed_vwma25() {
-            this.switch_vwma25.loading = this.switch_vwma25.value;
         },
         handleResize() {
             this.width = window.innerWidth;
@@ -140,10 +114,33 @@ var app = new Vue({
     beforeDestroy: function () {
         window.removeEventListener('resize', this.handleResize)
     }
-})
+});
 
-eel.expose(js_log);
-function js_log() {
-    console.log('aaa');
-    return;
+function array_clear(ary, name) {
+    for (let index = 0; index < ary.length; index++) {
+        const element = ary[index];
+        if (element.name == name) {
+            ary.splice(index, 1);
+            break;
+        }
+    }
+}
+
+function get_chart_data(timestamp, data) {
+
+    let chart_data = []
+    idx = 0;
+    while (true) {
+        if (timestamp[idx] == null) break;
+
+        let params = [timestamp[idx]];
+        data.forEach(element => {
+            params.push(element[idx]);
+        });
+
+        chart_data.push(params);
+        idx += 1;
+    }
+
+    return chart_data;
 }

@@ -129,15 +129,21 @@
                                     <v-container>
                                         <v-row>
                                             <v-col cols="auto">
-                                                <v-switch class="ma-1" v-model="switch1" label="VWMA 20"
-                                                    :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary"
+                                                <v-switch class="ma-1" v-model="switch_vwma20.isChecked" label="VWMA 20"
+                                                    :loading="switch_vwma20.loading" :disabled="switch_vwma20.loading" color="secondary"
                                                     @change="changed_vwma20" dense>
                                                 </v-switch>
                                             </v-col>
                                             <v-col cols="auto">
-                                                <v-switch class="ma-1" v-model="switch_vwma25.value" label="VWMA 25"
+                                                <v-switch class="ma-1" v-model="switch_vwma25.isChecked" label="VWMA 25"
                                                     :loading="switch_vwma25.loading" :disabled="switch_vwma25.loading"
                                                     color="secondary" @change="changed_vwma25" dense>
+                                                </v-switch>
+                                            </v-col>
+                                            <v-col cols="auto">
+                                                <v-switch class="ma-1" v-model="switch_cci25.isChecked" label="CCI 25"
+                                                    :loading="switch_cci25.loading" :disabled="switch_cci25.loading"
+                                                    color="secondary" @change="changed_cci25" dense>
                                                 </v-switch>
                                             </v-col>
                                         </v-row>

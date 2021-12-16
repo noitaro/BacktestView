@@ -20,16 +20,17 @@ async def main():
 
 @eel.expose
 def get_ohlcv(from_date: str, to_date: str):
-    if from_date is None or to_date is None:
+    if from_date is None or from_date == '' or \
+        to_date is None or to_date == '':
         return None
+
+    print(f'get_ohlcv: FROM={from_date}, TO={to_date}')
 
     # 1609459200000 <- '2021-01-01'
     from_timestamp = utility.dateToTimestamp(from_date)
     to_timestamp = utility.dateToTimestamp(to_date)
     if from_timestamp >= to_timestamp:
         return None
-
-    print(f'get_ohlcv: FROM={from_date}, TO={to_date}')
 
     ohlcv_df = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
     bybit = ccxt.bybit()
