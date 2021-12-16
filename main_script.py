@@ -5,6 +5,7 @@ import pandas_ta as ta  # pip install -U git+https://github.com/twopirllc/pandas
 import pandas as pd  # pip install pandas
 import sub_script as utility
 import importlib
+import os
 
 # python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
 
@@ -89,11 +90,15 @@ def get_cci(timestamp, high, low, close, length):
     return df.loc[:,['timestamp', 'cci']].to_json()
 
 @eel.expose
-def run_backtest():
+def run_backtest(ohlcv, module_name: str, method_name: str):
+    print(f'run_backtest: module_name={module_name}, method_name={method_name}')
+
+    df = pd.DataFrame()
+    df['ohlcv'] = pd.DataFrame.from_dict(ohlcv, orient='index')
 
     try:
-        module = importlib.import_module('helloworld.py')
-        method = getattr(module, 'bb_strategy_directed')
+        module = importlib.import_module(module_name)
+        method = getattr(module, method_name)
         method()
     except ModuleNotFoundError:
         print('モジュールが見つからない')
@@ -105,6 +110,7 @@ def run_backtest():
 
 if __name__ == '__main__':
     try:
+        # run_backtest('strategy1', 'bb_strategy_directed')
         asyncio.run(main())
     except Exception:
         pass

@@ -26,7 +26,8 @@ var app = new Vue({
         switch_loading_vwma20: false,
         sheet: false,
         switch1: false,
-        switch_vwma25: { loading: false, value: false }
+        switch_vwma25: { loading: false, value: false },
+        backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false }
     },
     created() {
         const d = new Date();
@@ -121,8 +122,9 @@ var app = new Vue({
             }
         },
         async run_backtest() {
-            await eel.run_backtest()();
-
+            this.backtest.loading = true;
+            await eel.run_backtest(this.backtest.module_name, this.backtest.method_name)();
+            this.backtest.loading = false;
         },
         async changed_vwma25() {
             this.switch_vwma25.loading = this.switch_vwma25.value;
