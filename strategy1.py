@@ -4,8 +4,9 @@ async def main():
     
     pass
 
-def bb_strategy_directed():
-    print("Hello from Apple")
+def bb_strategy_directed(ohlcv_df):
+    print("bb_strategy_directed")
+    print(ohlcv_df)
     pass
 
 

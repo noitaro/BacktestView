@@ -5,7 +5,9 @@ import pandas_ta as ta  # pip install -U git+https://github.com/twopirllc/pandas
 import pandas as pd  # pip install pandas
 import sub_script as utility
 import importlib
+import inspect
 import os
+
 
 # python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
 
@@ -94,17 +96,28 @@ def get_cci(timestamp, high, low, close, length):
 def run_backtest(ohlcv, module_name: str, method_name: str):
     print(f'run_backtest: module_name={module_name}, method_name={method_name}')
 
-    df = pd.DataFrame()
-    df['ohlcv'] = pd.DataFrame.from_dict(ohlcv, orient='index')
+    df = pd.DataFrame(ohlcv)
+    print(df)
 
-    try:
+    if importlib.util.find_spec(module_name):
         module = importlib.import_module(module_name)
         method = getattr(module, method_name)
-        method()
-    except ModuleNotFoundError:
-        print('モジュールが見つからない')
-    except AttributeError:
-        print('メソッドが見つからない')
+        if inspect.ismethod(method) or inspect.isfunction(method):
+
+            for idx in range(len(df)):
+                method(df[0:idx+1])
+                pass
+
+            pass
+        else:
+            print('Not Method')
+            pass
+
+
+        pass
+    else:
+        print('Not Module')
+        pass
 
     pass
 
