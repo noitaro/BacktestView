@@ -1,6 +1,7 @@
 const TradingVue = window['TradingVueJs'].TradingVue;
 
 let ohlcv_data = null;
+const innerHeightOffset = 31;
 
 var app = new Vue({
     el: '#app',
@@ -8,25 +9,30 @@ var app = new Vue({
     components: {
         'trading-vue': TradingVue
     },
-    data: {
-        dialog1: false,
-        dialog2: false,
-        dialog3: false,
-        loading_ohlcv: false,
-        chart: null,
-        onchart: [],
-        offchart: [],
-        width: window.innerWidth,
-        height: window.innerHeight - 100,
-        from_date: '2021-11-01',
-        to_date: '',
-        from_date_menu: false,
-        to_date_menu: false,
-        sheet: false,
-        switch_vwma20: { loading: false, isChecked: false },
-        switch_vwma25: { loading: false, isChecked: false },
-        switch_cci25: { loading: false, isChecked: false },
-        backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false }
+    data() {
+        return {
+            dialog1: false,
+            dialog2: false,
+            dialog3: false,
+            loading_ohlcv: false,
+            chart: null,
+            onchart: [],
+            offchart: [],
+            width: window.innerWidth,
+            height: window.innerHeight - innerHeightOffset,
+            from_date: '2021-12-01',
+            to_date: '',
+            from_date_menu: false,
+            to_date_menu: false,
+            sheet: false,
+            switch_vwma20: { loading: false, isChecked: false },
+            switch_vwma25: { loading: false, isChecked: false },
+            switch_cci25: { loading: false, isChecked: false },
+            switch_bb20: { loading: false, isChecked: false },
+            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false },
+            desserts: [],
+            headers: [{ text: 'タイプ', value: 'type' }, { text: '日時', value: 'datetime' }, { text: '価格', value: 'price' }]
+        };
     },
     created() {
         const d = new Date();
@@ -94,18 +100,56 @@ var app = new Vue({
 
             this.switch_cci25.loading = false;
         },
+        async changed_bb20() {
+            this.switch_bb20.loading = true;
+
+            array_clear(this.onchart, 'BB, 20 UPPER');
+            array_clear(this.onchart, 'BB, 20 LOWER');
+
+            if (this.switch_bb20.isChecked) {
+
+                // BB 20
+                const bb20_df = await eel.get_bb(ohlcv_data.timestamp, ohlcv_data.close, 20)();
+                const bb20 = JSON.parse(bb20_df);
+                this.onchart.push({ name: 'BB, 20 UPPER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBU_20_2.0']]) });
+                this.onchart.push({ name: 'BB, 20 LOWER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBL_20_2.0']]) });
+            }
+
+            this.switch_bb20.loading = false;
+        },
         async run_backtest() {
             this.backtest.loading = true;
 
+            array_clear(this.onchart, this.backtest.method_name);
+
             if (ohlcv_data != null) {
-                await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name)();
+                const result_df = await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name)();
+                const ret = JSON.parse(result_df);
+                const chart_data = get_chart_data(ret.timestamp, [ret.type, ret.price, ret.label]);
+
+                this.onchart.push({ name: this.backtest.method_name, type: 'Trades', data: chart_data });
+
+                let desserts = []
+                idx = 0;
+                while (true) {
+                    if (ret.timestamp[idx] == null) break;
+            
+                    const type = ret.type[idx] == 1 ? 'ロングエントリー' : 'ショートエントリー';
+                    const datetime = new Date(ret.timestamp[idx]);
+                    const dessert = {'type': type, 'datetime': datetime, 'price': ret.price[idx]};
+                    desserts.push(dessert);
+                    idx += 1;
+                }
+
+
+                this.desserts = desserts
             }
 
             this.backtest.loading = false;
         },
         handleResize() {
             this.width = window.innerWidth;
-            this.height = window.innerHeight - 100;
+            this.height = window.innerHeight - innerHeightOffset;
         }
     },
     mounted: function () {

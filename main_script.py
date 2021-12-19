@@ -6,7 +6,6 @@ import pandas as pd  # pip install pandas
 import sub_script as utility
 import importlib
 import inspect
-import os
 
 
 # python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
@@ -93,6 +92,19 @@ def get_cci(timestamp, high, low, close, length):
     return df.loc[:,['timestamp', 'cci']].to_json()
 
 @eel.expose
+def get_bb(timestamp, close, length):
+    print(f'get_bb: length={length}')
+    df = pd.DataFrame()
+    df['timestamp'] = pd.DataFrame.from_dict(timestamp, orient='index')
+    df['close'] = pd.DataFrame.from_dict(close, orient='index')
+
+    df_bbands = ta.bbands(df['close'], length)
+    df_bbands['timestamp'] = df['timestamp']
+    df = df.merge(df_bbands, on='timestamp')
+
+    return df.loc[:,['timestamp', f'BBL_{length}_2.0', f'BBM_{length}_2.0', f'BBU_{length}_2.0']].to_json()
+
+@eel.expose
 def run_backtest(ohlcv, module_name: str, method_name: str):
     print(f'run_backtest: module_name={module_name}, method_name={method_name}')
 
@@ -103,22 +115,28 @@ def run_backtest(ohlcv, module_name: str, method_name: str):
         module = importlib.import_module(module_name)
         method = getattr(module, method_name)
         if inspect.ismethod(method) or inspect.isfunction(method):
+            result = []
 
             for idx in range(len(df)):
-                method(df[0:idx+1])
+                try:
+                    ret = method(df[0:idx+1])
+
+                    if ret is not None:
+                        result.append(ret)
+                        pass
+                except Exception as e: print(e); return
+
                 pass
 
-            pass
+            result_df = pd.DataFrame(result)
+            return result_df.to_json()
         else:
             print('Not Method')
             pass
-
-
         pass
     else:
         print('Not Module')
         pass
-
     pass
 
 
