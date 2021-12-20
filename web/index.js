@@ -1,7 +1,7 @@
 const TradingVue = window['TradingVueJs'].TradingVue;
 
 let ohlcv_data = null;
-const innerHeightOffset = 31;
+const innerHeightOffset = 231;
 
 var app = new Vue({
     el: '#app',
@@ -133,10 +133,10 @@ var app = new Vue({
                 idx = 0;
                 while (true) {
                     if (ret.timestamp[idx] == null) break;
-            
+
                     const type = ret.type[idx] == 1 ? 'ロングエントリー' : 'ショートエントリー';
                     const datetime = new Date(ret.timestamp[idx]);
-                    const dessert = {'type': type, 'datetime': datetime, 'price': ret.price[idx]};
+                    const dessert = { 'type': type, 'datetime': datetime, 'price': ret.price[idx] };
                     desserts.push(dessert);
                     idx += 1;
                 }

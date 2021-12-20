@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./test.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-main>
+                <v-container fluid class="ma-0 pa-0 split components-container">
+                        <split-pane v-on:resize="resize" :min-percent='20' :default-percent='30' split="horizontal">
+                            <template slot="paneL">
+                                A
+                            </template>
+                            <template slot="paneR">
+                                B
+                            </template>
+                        </split-pane>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/trading-vue-js@1.0.2/dist/trading-vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-splitpane@1.0.6/dist/vue-split-pane.min.js"></script>
+    <script src="./test.js"></script>
+</body>
+
+</html>
