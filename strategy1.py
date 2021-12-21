@@ -1,12 +1,13 @@
 import asyncio
 import pandas_ta as ta # pip install -U git+https://github.com/twopirllc/pandas-ta
 
+LENGTH = 20
+
 async def main():
     
     pass
 
 def bb_strategy_directed(ohlcv_df):
-    LENGTH = 20
     print(f"bb_strategy_directed {LENGTH}")
     
     # ボリンジャーバンド計算

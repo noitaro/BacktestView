@@ -17,3 +17,9 @@ def timestampToDatetime(timestamp: str):
     2021-01-01 09:00:00 <- 1609459200000
     '''
     return datetime.fromtimestamp(int(timestamp)/1000)
+
+def str_format_datetime(dt: datetime):
+    '''
+    '2021/12/20 21:00:00' <- '1640001600000'
+    '''
+    return dt.strftime("%Y/%m/%d %H:%M:%S")

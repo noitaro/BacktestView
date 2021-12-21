@@ -1,3 +1,4 @@
+from typing import Dict
 import eel # pip install eel
 import ccxt
 import asyncio
@@ -111,33 +112,77 @@ def run_backtest(ohlcv, module_name: str, method_name: str):
     df = pd.DataFrame(ohlcv)
     print(df)
 
-    if importlib.util.find_spec(module_name):
-        module = importlib.import_module(module_name)
-        method = getattr(module, method_name)
-        if inspect.ismethod(method) or inspect.isfunction(method):
-            result = []
+    if importlib.util.find_spec(module_name) == False:
+        print('Not Module')
+        return
 
-            for idx in range(len(df)):
-                try:
-                    ret = method(df[0:idx+1])
+    module = importlib.import_module(module_name)
+    method = getattr(module, method_name)
+    if inspect.ismethod(method) == False and inspect.isfunction(method) == False:
+        print('Not Method')
+        return
 
-                    if ret is not None:
-                        result.append(ret)
-                        pass
-                except Exception as e: print(e); return
+    try:
 
+        backtest_data = []
+        for idx in range(len(df)):
+            ohlcv = df[0:idx+1]
+
+            # バックテスト
+            ret: Dict = method(ohlcv)
+
+            if ret is not None:
+                order_datetime = utility.timestampToDatetime(str(ret['timestamp']))
+                ret['datetime'] = utility.str_format_datetime(order_datetime)
+                ret['drawdown'] = ret['price']
+                ret['position'] = False
+                ret['position_datetime'] = None
+                ret['execution'] = False
+                ret['execution_price'] = 0
+                ret['execution_datetime'] = None
+
+                backtest_data.append(ret)
                 pass
 
-            result_df = pd.DataFrame(result)
-            return result_df.to_json()
-        else:
-            print('Not Method')
-            pass
-        pass
-    else:
-        print('Not Module')
-        pass
-    pass
+            for idx in range(len(backtest_data)):
+                if backtest_data[idx]['position'] == False:
+                    # 注文 → ポジション
+                    if ohlcv['low'].iloc[-1] <= backtest_data[idx]['price'] <= ohlcv['high'].iloc[-1]:
+                        backtest_data[idx]['position'] = True
+                        position_datetime = utility.timestampToDatetime(str(ohlcv['timestamp'].iloc[-1]))
+                        backtest_data[idx]['position_datetime'] = utility.str_format_datetime(position_datetime)
+                        pass
+                    pass
+                elif backtest_data[idx]['execution'] == False:
+                    # ポジション → 約定
+                    if backtest_data[idx]['type'] != backtest_data[len(backtest_data)-1]['type']:
+                        backtest_data[idx]['execution'] = True
+                        backtest_data[idx]['execution_price'] = backtest_data[len(backtest_data)-1]['price']
+                        position_datetime = utility.timestampToDatetime(str(ohlcv['timestamp'].iloc[-1]))
+                        backtest_data[idx]['execution_datetime'] = utility.str_format_datetime(position_datetime)
+                        pass
+                    pass
+                else:
+                    # ドローダウン
+                    if backtest_data[idx]['type'] == 0:
+                        # Sell marker
+                        if backtest_data[idx]['drawdown'] < ohlcv['high'].iloc[-1]:
+                            backtest_data[idx]['drawdown'] = ohlcv['high'].iloc[-1]
+                        pass
+                    else:
+                        # Buy marker
+                        if ohlcv['low'].iloc[-1] < backtest_data[idx]['drawdown']:
+                            backtest_data[idx]['drawdown'] = ohlcv['low'].iloc[-1]
+                        pass
+                    pass
+                pass
+
+        result_df = pd.DataFrame(backtest_data)
+        print(result_df)
+        return result_df.to_json()
+
+    except Exception as e: print(e); return
+
 
 
 if __name__ == '__main__':
