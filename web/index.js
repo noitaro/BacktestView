@@ -11,6 +11,7 @@ var app = new Vue({
     },
     data() {
         return {
+            timezone: 9,
             dialog1: false,
             dialog2: false,
             dialog3: false,
@@ -20,7 +21,7 @@ var app = new Vue({
             offchart: [],
             width: window.innerWidth,
             height: window.innerHeight - innerHeightOffset,
-            from_date: '2021-12-01',
+            from_date: '2021-12-11',
             to_date: '',
             from_date_menu: false,
             to_date_menu: false,
@@ -29,9 +30,8 @@ var app = new Vue({
             switch_vwma25: { loading: false, isChecked: false },
             switch_cci25: { loading: false, isChecked: false },
             switch_bb20: { loading: false, isChecked: false },
-            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false },
-            desserts: [],
-            headers: [{ text: 'タイプ', value: 'type' }, { text: '日時', value: 'datetime' }, { text: '価格', value: 'price' }]
+            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, initial_coin: 1.0, size: 0.01 },
+            desserts: []
         };
     },
     created() {
@@ -134,10 +134,15 @@ var app = new Vue({
                 while (true) {
                     if (ret.timestamp[idx] == null) break;
 
-                    const type = ret.type[idx] == 1 ? 'ロングエントリー' : 'ショートエントリー';
-                    const datetime = new Date(ret.timestamp[idx]);
-                    const dessert = { 'type': type, 'datetime': datetime, 'price': ret.price[idx] };
-                    desserts.push(dessert);
+                    const dessert1 = {
+                        'type1': ret.type[idx] == 0 ? 'ショートエントリー' : 'ロングエントリー', 
+                        'type2': ret.type[idx] == 0 ? 'ショートを決済' : 'ロングを決済', 
+                        'datetime1': ret.datetime[idx], 
+                        'datetime2': ret. execution_datetime[idx], 
+                        'price1': ret.price[idx],
+                        'price2': ret.execution_price[idx]
+                    };
+                    desserts.push(dessert1);
                     idx += 1;
                 }
 

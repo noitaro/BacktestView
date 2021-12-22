@@ -136,10 +136,10 @@ def run_backtest(ohlcv, module_name: str, method_name: str):
                 ret['datetime'] = utility.str_format_datetime(order_datetime)
                 ret['drawdown'] = ret['price']
                 ret['position'] = False
-                ret['position_datetime'] = None
+                ret['position_datetime'] = '　'
                 ret['execution'] = False
                 ret['execution_price'] = 0
-                ret['execution_datetime'] = None
+                ret['execution_datetime'] = '　'
 
                 backtest_data.append(ret)
                 pass
@@ -154,15 +154,6 @@ def run_backtest(ohlcv, module_name: str, method_name: str):
                         pass
                     pass
                 elif backtest_data[idx]['execution'] == False:
-                    # ポジション → 約定
-                    if backtest_data[idx]['type'] != backtest_data[len(backtest_data)-1]['type']:
-                        backtest_data[idx]['execution'] = True
-                        backtest_data[idx]['execution_price'] = backtest_data[len(backtest_data)-1]['price']
-                        position_datetime = utility.timestampToDatetime(str(ohlcv['timestamp'].iloc[-1]))
-                        backtest_data[idx]['execution_datetime'] = utility.str_format_datetime(position_datetime)
-                        pass
-                    pass
-                else:
                     # ドローダウン
                     if backtest_data[idx]['type'] == 0:
                         # Sell marker
@@ -173,6 +164,14 @@ def run_backtest(ohlcv, module_name: str, method_name: str):
                         # Buy marker
                         if ohlcv['low'].iloc[-1] < backtest_data[idx]['drawdown']:
                             backtest_data[idx]['drawdown'] = ohlcv['low'].iloc[-1]
+                        pass
+                    pass
+                    # ポジション → 約定
+                    if backtest_data[idx]['type'] != backtest_data[len(backtest_data)-1]['type']:
+                        backtest_data[idx]['execution'] = True
+                        backtest_data[idx]['execution_price'] = backtest_data[len(backtest_data)-1]['price']
+                        position_datetime = utility.timestampToDatetime(str(ohlcv['timestamp'].iloc[-1]))
+                        backtest_data[idx]['execution_datetime'] = utility.str_format_datetime(position_datetime)
                         pass
                     pass
                 pass

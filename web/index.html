@@ -96,13 +96,25 @@
                                         <v-container>
                                             <v-row>
                                                 <v-col cols="12" sm="6">
-                                                    <v-text-field label="モジュール名" outlined dense
+                                                    <v-text-field label="モジュール名" outlined dense clearable
                                                         v-model="backtest.module_name">
                                                     </v-text-field>
                                                 </v-col>
                                                 <v-col cols="12" sm="6">
-                                                    <v-text-field label="メソッド名" outlined dense
+                                                    <v-text-field label="メソッド名" outlined dense clearable
                                                         v-model="backtest.method_name">
+                                                    </v-text-field>
+                                                </v-col>
+                                            </v-row>
+                                            <v-row>
+                                                <v-col cols="12" sm="4">
+                                                    <v-text-field label="初期資金" outlined dense clearable suffix="BTC"
+                                                        v-model="backtest.initial_coin">
+                                                    </v-text-field>
+                                                </v-col>
+                                                <v-col cols="12" sm="4">
+                                                    <v-text-field label="発注サイズ" outlined dense clearable suffix="BTC"
+                                                        v-model="backtest.size">
                                                     </v-text-field>
                                                 </v-col>
                                             </v-row>
@@ -119,6 +131,7 @@
                                 </v-card>
                             </v-dialog>
                         </v-col>
+
                         <v-col cols="auto">
 
                             <v-dialog v-model="dialog2" max-width="600px">
@@ -170,13 +183,32 @@
                     </v-row>
                     <v-row no-gutters>
                         <v-col>
-                            <trading-vue class="ma-0" :data="this.$data" :width="width" :height="height">
+                            <trading-vue class="ma-0" :data="this.$data" :width="width" :height="height" :timezone="timezone">
                             </trading-vue>
                         </v-col>
                     </v-row>
                     <v-row no-gutters>
                         <v-col>
-                            <v-data-table id="strategy_test" dense :headers="headers" :items="desserts" item-key="name" height="200" items-per-page="-1" fixed-header hide-default-footer></v-data-table>
+                            <v-simple-table height="200" fixed-header>
+                                <template v-slot:default>
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">#</th>
+                                            <th class="text-left pa-0">タイプ</th>
+                                            <th class="text-left pa-0">日時</th>
+                                            <th class="text-left pa-0">価格</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item, index) in desserts" :key="index">
+                                            <td class="">{{ index+1 }}</td>
+                                            <td class="pa-0">{{ item.type1 }}<v-divider></v-divider>{{ item.type2 }}</td>
+                                            <td class="pa-0">{{ item.datetime1 }}<v-divider></v-divider>{{ item.datetime2 }}</td>
+                                            <td class="pa-0">{{ item.price1 }}<v-divider></v-divider>{{ item.price2 }}</td>
+                                        </tr>
+                                    </tbody>
+                                </template>
+                            </v-simple-table>
                         </v-col>
                     </v-row>
 
