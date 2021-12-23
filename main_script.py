@@ -7,6 +7,7 @@ import pandas as pd  # pip install pandas
 import sub_script as utility
 import importlib
 import inspect
+from decimal import Decimal
 
 
 # python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
@@ -106,8 +107,8 @@ def get_bb(timestamp, close, length):
     return df.loc[:,['timestamp', f'BBL_{length}_2.0', f'BBM_{length}_2.0', f'BBU_{length}_2.0']].to_json()
 
 @eel.expose
-def run_backtest(ohlcv, module_name: str, method_name: str):
-    print(f'run_backtest: module_name={module_name}, method_name={method_name}')
+def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):
+    print(f'run_backtest: module_name={module_name}, method_name={method_name}, size={size}')
 
     df = pd.DataFrame(ohlcv)
     print(df)
@@ -140,6 +141,7 @@ def run_backtest(ohlcv, module_name: str, method_name: str):
                 ret['execution'] = False
                 ret['execution_price'] = 0
                 ret['execution_datetime'] = '　'
+                ret['profit'] = 0
 
                 backtest_data.append(ret)
                 pass
@@ -172,6 +174,14 @@ def run_backtest(ohlcv, module_name: str, method_name: str):
                         backtest_data[idx]['execution_price'] = backtest_data[len(backtest_data)-1]['price']
                         position_datetime = utility.timestampToDatetime(str(ohlcv['timestamp'].iloc[-1]))
                         backtest_data[idx]['execution_datetime'] = utility.str_format_datetime(position_datetime)
+                        if backtest_data[idx]['type'] == 0:
+                            # Sell marker
+                            backtest_data[idx]['profit'] = backtest_data[idx]['price'] - backtest_data[idx]['execution_price']
+                            pass
+                        else:
+                            # Buy marker
+                            backtest_data[idx]['profit'] = backtest_data[idx]['execution_price'] - backtest_data[idx]['price']
+                            pass
                         pass
                     pass
                 pass

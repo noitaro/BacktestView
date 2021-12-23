@@ -1,4 +1,5 @@
 const TradingVue = window['TradingVueJs'].TradingVue;
+const LineChart = window['VueChartJs'].Line;
 
 let ohlcv_data = null;
 const innerHeightOffset = 231;
@@ -7,7 +8,8 @@ var app = new Vue({
     el: '#app',
     vuetify: new Vuetify(),
     components: {
-        'trading-vue': TradingVue
+        'trading-vue': TradingVue,
+        'line-chart': LineChart
     },
     data() {
         return {
@@ -15,6 +17,7 @@ var app = new Vue({
             dialog1: false,
             dialog2: false,
             dialog3: false,
+            dialog4: false,
             loading_ohlcv: false,
             chart: null,
             onchart: [],
@@ -30,7 +33,7 @@ var app = new Vue({
             switch_vwma25: { loading: false, isChecked: false },
             switch_cci25: { loading: false, isChecked: false },
             switch_bb20: { loading: false, isChecked: false },
-            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, initial_coin: 1.0, size: 0.01 },
+            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, initial_coin: 10000, size: 0.01 },
             desserts: []
         };
     },
@@ -123,7 +126,7 @@ var app = new Vue({
             array_clear(this.onchart, this.backtest.method_name);
 
             if (ohlcv_data != null) {
-                const result_df = await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name)();
+                const result_df = await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name, this.backtest.size)();
                 const ret = JSON.parse(result_df);
                 const chart_data = get_chart_data(ret.timestamp, [ret.type, ret.price, ret.label]);
 
@@ -140,7 +143,9 @@ var app = new Vue({
                         'datetime1': ret.datetime[idx], 
                         'datetime2': ret. execution_datetime[idx], 
                         'price1': ret.price[idx],
-                        'price2': ret.execution_price[idx]
+                        'price2': ret.execution_price[idx],
+                        'profit': ret.profit[idx],
+                        'isRed': ret.profit[idx] < 0
                     };
                     desserts.push(dessert1);
                     idx += 1;
