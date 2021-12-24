@@ -13,15 +13,18 @@ var app = new Vue({
     },
     data() {
         return {
+            trading_vue: { chart: null, onchart: [], offchart: [] },
+            line_chart: { labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                          datasets: [{ label: 'sample', borderColor: '#0000ff', data: [100, 90, 60, 70, 50, 30, 40, 50, 60, 100], fill: false }]
+            },
+            options: { title: { display: true, text: 'Line chart' }, legend: { display: false },
+            },
             timezone: 9,
             dialog1: false,
             dialog2: false,
             dialog3: false,
             dialog4: false,
             loading_ohlcv: false,
-            chart: null,
-            onchart: [],
-            offchart: [],
             width: window.innerWidth,
             height: window.innerHeight - innerHeightOffset,
             from_date: '2021-12-11',
@@ -33,7 +36,7 @@ var app = new Vue({
             switch_vwma25: { loading: false, isChecked: false },
             switch_cci25: { loading: false, isChecked: false },
             switch_bb20: { loading: false, isChecked: false },
-            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, initial_coin: 10000, size: 0.01 },
+            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, size: 0.01 },
             desserts: []
         };
     },
@@ -52,7 +55,7 @@ var app = new Vue({
                 ohlcv_data = ohlcv;
 
                 const chart_data = get_chart_data(ohlcv.timestamp, [ohlcv.open, ohlcv.high, ohlcv.low, ohlcv.close, ohlcv.volume]);
-                this.chart = { name: 'BTCUSDT', type: 'Candles', data: chart_data };
+                this.trading_vue.chart = { name: 'BTCUSDT', type: 'Candles', data: chart_data };
             }
 
             this.loading_ohlcv = false;
@@ -60,14 +63,14 @@ var app = new Vue({
         async changed_vwma20() {
             this.switch_vwma20.loading = true;
 
-            array_clear(this.onchart, 'VWMA, 20');
+            array_clear(this.trading_vue.onchart, 'VWMA, 20');
 
             if (this.switch_vwma20.isChecked) {
                 // VWMA 20
                 const vwma20_df = await eel.get_vwma(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.volume, 20)();
                 const vwma20 = JSON.parse(vwma20_df);
                 const chart_data = get_chart_data(vwma20.timestamp, [vwma20.vwma]);
-                this.onchart.push({ name: 'VWMA, 20', type: 'EMA', data: chart_data });
+                this.trading_vue.onchart.push({ name: 'VWMA, 20', type: 'EMA', data: chart_data });
             }
 
             this.switch_vwma20.loading = false;
@@ -75,14 +78,14 @@ var app = new Vue({
         async changed_vwma25() {
             this.switch_vwma25.loading = true;
 
-            array_clear(this.onchart, 'VWMA, 25');
+            array_clear(this.trading_vue.onchart, 'VWMA, 25');
 
             if (this.switch_vwma25.isChecked) {
                 // VWMA 25
                 const vwma25_df = await eel.get_vwma(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.volume, 25)();
                 const vwma25 = JSON.parse(vwma25_df);
                 const chart_data = get_chart_data(vwma25.timestamp, [vwma25.vwma]);
-                this.onchart.push({ name: 'VWMA, 25', type: 'EMA', data: chart_data });
+                this.trading_vue.onchart.push({ name: 'VWMA, 25', type: 'EMA', data: chart_data });
             }
 
             this.switch_vwma25.loading = false;
@@ -90,7 +93,7 @@ var app = new Vue({
         async changed_cci25() {
             this.switch_cci25.loading = true;
 
-            array_clear(this.offchart, 'CCI, 25');
+            array_clear(this.trading_vue.offchart, 'CCI, 25');
 
             if (this.switch_cci25.isChecked) {
 
@@ -98,7 +101,7 @@ var app = new Vue({
                 const cci25_df = await eel.get_cci(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.close, ohlcv_data.close, 25)();
                 const cci25 = JSON.parse(cci25_df);
                 const chart_data = get_chart_data(cci25.timestamp, [cci25.cci]);
-                this.offchart.push({ name: 'CCI, 25', type: 'SMA', data: chart_data });
+                this.trading_vue.offchart.push({ name: 'CCI, 25', type: 'SMA', data: chart_data });
             }
 
             this.switch_cci25.loading = false;
@@ -106,16 +109,16 @@ var app = new Vue({
         async changed_bb20() {
             this.switch_bb20.loading = true;
 
-            array_clear(this.onchart, 'BB, 20 UPPER');
-            array_clear(this.onchart, 'BB, 20 LOWER');
+            array_clear(this.trading_vue.onchart, 'BB, 20 UPPER');
+            array_clear(this.trading_vue.onchart, 'BB, 20 LOWER');
 
             if (this.switch_bb20.isChecked) {
 
                 // BB 20
                 const bb20_df = await eel.get_bb(ohlcv_data.timestamp, ohlcv_data.close, 20)();
                 const bb20 = JSON.parse(bb20_df);
-                this.onchart.push({ name: 'BB, 20 UPPER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBU_20_2.0']]) });
-                this.onchart.push({ name: 'BB, 20 LOWER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBL_20_2.0']]) });
+                this.trading_vue.onchart.push({ name: 'BB, 20 UPPER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBU_20_2.0']]) });
+                this.trading_vue.onchart.push({ name: 'BB, 20 LOWER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBL_20_2.0']]) });
             }
 
             this.switch_bb20.loading = false;
@@ -123,14 +126,14 @@ var app = new Vue({
         async run_backtest() {
             this.backtest.loading = true;
 
-            array_clear(this.onchart, this.backtest.method_name);
+            array_clear(this.trading_vue.onchart, this.backtest.method_name);
 
             if (ohlcv_data != null) {
                 const result_df = await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name, this.backtest.size)();
                 const ret = JSON.parse(result_df);
                 const chart_data = get_chart_data(ret.timestamp, [ret.type, ret.price, ret.label]);
 
-                this.onchart.push({ name: this.backtest.method_name, type: 'Trades', data: chart_data });
+                this.trading_vue.onchart.push({ name: this.backtest.method_name, type: 'Trades', data: chart_data });
 
                 let desserts = []
                 idx = 0;
@@ -138,14 +141,14 @@ var app = new Vue({
                     if (ret.timestamp[idx] == null) break;
 
                     const dessert1 = {
-                        'type1': ret.type[idx] == 0 ? 'ショートエントリー' : 'ロングエントリー', 
-                        'type2': ret.type[idx] == 0 ? 'ショートを決済' : 'ロングを決済', 
-                        'datetime1': ret.datetime[idx], 
-                        'datetime2': ret. execution_datetime[idx], 
+                        'type1': ret.type[idx] == 0 ? 'ショートエントリー' : 'ロングエントリー',
+                        'type2': ret.type[idx] == 0 ? 'ショートを決済' : 'ロングを決済',
+                        'datetime1': ret.datetime[idx],
+                        'datetime2': ret.execution_datetime[idx],
                         'price1': ret.price[idx],
                         'price2': ret.execution_price[idx],
                         'profit': ret.profit[idx],
-                        'isRed': ret.profit[idx] < 0
+                        'total_profit': ret.total_profit[idx]
                     };
                     desserts.push(dessert1);
                     idx += 1;
@@ -163,10 +166,10 @@ var app = new Vue({
         }
     },
     mounted: function () {
-        window.addEventListener('resize', this.handleResize)
+        window.addEventListener('resize', this.handleResize);
     },
     beforeDestroy: function () {
-        window.removeEventListener('resize', this.handleResize)
+        window.removeEventListener('resize', this.handleResize);
     }
 });
 

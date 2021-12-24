@@ -158,11 +158,6 @@
                                             </v-row>
                                             <v-row>
                                                 <v-col cols="12" sm="4">
-                                                    <v-text-field label="初期資金" outlined dense clearable suffix="USD"
-                                                        v-model="backtest.initial_coin">
-                                                    </v-text-field>
-                                                </v-col>
-                                                <v-col cols="12" sm="4">
                                                     <v-text-field label="発注サイズ" outlined dense clearable suffix="BTC"
                                                         v-model="backtest.size">
                                                     </v-text-field>
@@ -186,18 +181,18 @@
                             <v-dialog v-model="dialog4" max-width="600px">
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-btn color="secondary" dark v-bind="attrs" v-on="on" small tile>
-                                        資産グラフ
+                                        損益グラフ
                                     </v-btn>
                                 </template>
                                 <v-card>
                                     <v-card-title>
-                                        <span class="text-h5">資産グラフ</span>
+                                        <span class="text-h5">損益グラフ</span>
                                     </v-card-title>
                                     <v-card-text>
                                         <v-container>
                                             <v-row>
                                                 <v-col cols="12">
-                                                    <line-chart :data="this.$data"></line-chart>
+                                                    <line-chart :chartdata="line_chart"></line-chart>
                                                 </v-col>
                                             </v-row>
                                         </v-container>
@@ -209,7 +204,7 @@
                     </v-row>
                     <v-row no-gutters>
                         <v-col>
-                            <trading-vue class="ma-0" :data="this.$data" :width="width" :height="height"
+                            <trading-vue class="ma-0" :data="trading_vue" :width="width" :height="height"
                                 :timezone="timezone">
                             </trading-vue>
                         </v-col>
@@ -225,19 +220,17 @@
                                             <th class="text-left pa-0">日時</th>
                                             <th class="text-left pa-0">価格</th>
                                             <th class="text-left">利益</th>
+                                            <th class="text-left pa-0">累積利益</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr v-for="(item, index) in desserts" :key="index">
                                             <td class="">{{ index+1 }}</td>
-                                            <td class="pa-0">{{ item.type1 }}<v-divider></v-divider>{{ item.type2 }}
-                                            </td>
-                                            <td class="pa-0">{{ item.datetime1 }}<v-divider></v-divider>{{
-                                                item.datetime2 }}</td>
-                                            <td class="pa-0">{{ item.price1 }}<v-divider></v-divider>{{ item.price2 }}
-                                            </td>
-                                            <td class=""><span v-bind:class="{ 'red--text': item.isRed }">{{ item.profit
-                                                    }}</span></td>
+                                            <td class="pa-0">{{ item.type1 }}<v-divider></v-divider>{{ item.type2 }}</td>
+                                            <td class="pa-0">{{ item.datetime1 }}<v-divider></v-divider>{{ item.datetime2 }}</td>
+                                            <td class="pa-0">{{ item.price1 }}<v-divider></v-divider>{{ item.price2 }}</td>
+                                            <td class=""><span v-bind:class="{ 'red--text': item.profit < 0 }">{{ item.profit }}</span></td>
+                                            <td class=" pa-0"><span v-bind:class="{ 'red--text': item.total_profit < 0 }">{{ item.total_profit }}</span></td>
                                         </tr>
                                     </tbody>
                                 </template>
