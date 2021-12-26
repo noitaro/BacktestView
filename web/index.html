@@ -81,7 +81,7 @@
                         </v-col>
 
                         <v-spacer></v-spacer>
-                        
+
                         <v-col cols="auto">
 
                             <v-dialog v-model="dialog2" max-width="600px">
@@ -192,7 +192,7 @@
                                         <v-container>
                                             <v-row>
                                                 <v-col cols="12">
-                                                    <line-chart :chartdata="line_chart"></line-chart>
+                                                    <line-chart style="height: 400px;"></line-chart>
                                                 </v-col>
                                             </v-row>
                                         </v-container>
@@ -226,11 +226,17 @@
                                     <tbody>
                                         <tr v-for="(item, index) in desserts" :key="index">
                                             <td class="">{{ index+1 }}</td>
-                                            <td class="pa-0">{{ item.type1 }}<v-divider></v-divider>{{ item.type2 }}</td>
-                                            <td class="pa-0">{{ item.datetime1 }}<v-divider></v-divider>{{ item.datetime2 }}</td>
-                                            <td class="pa-0">{{ item.price1 }}<v-divider></v-divider>{{ item.price2 }}</td>
-                                            <td class=""><span v-bind:class="{ 'red--text': item.profit < 0 }">{{ item.profit }}</span></td>
-                                            <td class=" pa-0"><span v-bind:class="{ 'red--text': item.total_profit < 0 }">{{ item.total_profit }}</span></td>
+                                            <td class="pa-0">{{ item.type1 }}<v-divider></v-divider>{{ item.type2 }}
+                                            </td>
+                                            <td class="pa-0">{{ item.datetime1 }}<v-divider></v-divider>{{
+                                                item.datetime2 }}</td>
+                                            <td class="pa-0">{{ item.price1 }}<v-divider></v-divider>{{ item.price2 }}
+                                            </td>
+                                            <td class=""><span v-bind:class="{ 'red--text': item.profit < 0 }">{{
+                                                    item.profit }}</span></td>
+                                            <td class=" pa-0"><span
+                                                    v-bind:class="{ 'red--text': item.total_profit < 0 }">{{
+                                                    item.total_profit }}</span></td>
                                         </tr>
                                     </tbody>
                                 </template>
@@ -245,7 +251,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/trading-vue-js@1.0.2/dist/trading-vue.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
     <script src="https://unpkg.com/vue-chartjs/dist/vue-chartjs.min.js"></script>
     <script type="text/javascript" src="/eel.js"></script>
     <script src="./index.js"></script>
