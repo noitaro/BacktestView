@@ -3,22 +3,6 @@ const TradingVue = window['TradingVueJs'].TradingVue;
 let ohlcv_data = null;
 const innerHeightOffset = 231;
 
-Vue.component('line-chart', {
-    extends: VueChartJs.Line,
-    mounted() {
-        this.renderChart({
-            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-            datasets: [
-                {
-                    label: 'Data One',
-                    backgroundColor: '#f87979',
-                    data: [40, 39, 10, 40, 39, 80, 40]
-                }
-            ]
-        }, { responsive: true, maintainAspectRatio: false })
-    }
-});
-
 var app = new Vue({
     el: '#app',
     vuetify: new Vuetify(),
@@ -28,10 +12,12 @@ var app = new Vue({
     data() {
         return {
             trading_vue: { chart: null, onchart: [], offchart: [] },
-            line_chart: { labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                          datasets: [{ label: 'sample', borderColor: '#0000ff', data: [100, 90, 60, 70, 50, 30, 40, 50, 60, 100], fill: false }]
+            line_chart: {
+                labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                datasets: [{ label: 'sample', borderColor: '#0000ff', data: [100, 90, 60, 70, 50, 30, 40, 50, 60, 100], fill: false }]
             },
-            options: { title: { display: true, text: 'Line chart' }, legend: { display: false },
+            options: {
+                title: { display: true, text: 'Line chart' }, legend: { display: false },
             },
             timezone: 9,
             dialog1: false,
@@ -170,6 +156,42 @@ var app = new Vue({
 
 
                 this.desserts = desserts
+
+                const labels = get_chart_data(ohlcv_data.datetime);
+                let datasetsData = [];
+
+                let total_profit = 0;
+                labels.forEach(element1 => {
+                    for (let index = 0; index < desserts.length; index++) {
+                        const element2 = desserts[index];
+                        if (element1[0] == element2.datetime2) {
+                            total_profit = element2.total_profit;
+                            break;
+                        }
+                    }
+                    datasetsData.push(total_profit);
+                });
+
+
+                Vue.component('line-chart', {
+                    extends: VueChartJs.Line,
+                    mounted() {
+                        this.renderChart({
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'USDT',
+                                    backgroundColor: '#f87979',
+                                    data: datasetsData
+                                }
+                            ]
+                        }, { responsive: true, maintainAspectRatio: false })
+                    }
+                });
+
+
+
+
             }
 
             this.backtest.loading = false;
@@ -205,9 +227,12 @@ function get_chart_data(timestamp, data) {
         if (timestamp[idx] == null) break;
 
         let params = [timestamp[idx]];
-        data.forEach(element => {
-            params.push(element[idx]);
-        });
+
+        if (data != null && data.length >= 1) {
+            data.forEach(element => {
+                params.push(element[idx]);
+            });
+        }
 
         chart_data.push(params);
         idx += 1;

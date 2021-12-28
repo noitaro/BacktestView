@@ -68,6 +68,10 @@ def get_ohlcv(from_date: str, to_date: str):
     # fetch_ohlcvで多めに取れているため
     ohlcv_df = ohlcv_df[ohlcv_df['timestamp'] <= to_timestamp]
 
+    # timestamp -> datetime
+    f_to_datetime = lambda x: utility.str_format_datetime(utility.timestampToDatetime(str(x)))
+    ohlcv_df['datetime'] = ohlcv_df['timestamp'].map(f_to_datetime)
+
     return ohlcv_df.to_json()
 
 

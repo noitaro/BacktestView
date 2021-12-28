@@ -8,7 +8,7 @@ async def main():
     pass
 
 def bb_strategy_directed(ohlcv_df):
-    print(f"bb_strategy_directed {LENGTH}")
+    # print(f"bb_strategy_directed {LENGTH}")
     
     # ボリンジャーバンド計算
     bbands_df = ta.bbands(ohlcv_df['close'], LENGTH)
