@@ -1,18 +1,17 @@
 from typing import Dict
 import eel # pip install eel
-import ccxt
+import ccxt # pip install ccxt
 import asyncio
-import pandas_ta as ta  # pip install -U git+https://github.com/twopirllc/pandas-ta
 import pandas as pd  # pip install pandas
+import pandas_ta as ta  # pip install -U git+https://github.com/twopirllc/pandas-ta
 import sub_script as utility
 import importlib
-import inspect
 from decimal import Decimal
 import os
 import sys
 
-
-# python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
+# pip install PyInstaller
+# python -m eel BacktestView.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
 
 
 async def main():
