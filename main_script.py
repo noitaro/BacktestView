@@ -8,12 +8,15 @@ import sub_script as utility
 import importlib
 import inspect
 from decimal import Decimal
+import os
+import sys
 
 
 # python -m eel main_script.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
 
 
 async def main():
+    print(__file__)
 
     eel.init('web')
     eel.start('index.html', port=0, size=(1200, 800))
@@ -114,19 +117,25 @@ def get_bb(timestamp, close, length):
 def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):
     print(f'run_backtest: module_name={module_name}, method_name={method_name}, size={size}')
 
+    # 実行フォルダをインポートパスに追加
+    print(os.getcwd())
+    sys.path.append(os.getcwd())
+
     df = pd.DataFrame(ohlcv)
     print(df)
 
-    if importlib.util.find_spec(module_name) == False:
-        print('Not Module')
+    try:
+        module = importlib.import_module(module_name)
+    except Exception as e:
+        print('Not Module: ' + str(e))
         return
 
-    module = importlib.import_module(module_name)
-    method = getattr(module, method_name)
-    if inspect.ismethod(method) == False and inspect.isfunction(method) == False:
-        print('Not Method')
+    try:
+        method = getattr(module, method_name)
+    except Exception as e:
+        print('Not Method: ' + str(e))
         return
-
+    
     try:
 
         backtest_data = []
@@ -141,10 +150,10 @@ def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):
                 ret['datetime'] = utility.str_format_datetime(order_datetime)
                 ret['drawdown'] = ret['price']
                 ret['position'] = False
-                ret['position_datetime'] = '　'
+                ret['position_datetime'] = None
                 ret['execution'] = False
                 ret['execution_price'] = 0
-                ret['execution_datetime'] = '　'
+                ret['execution_datetime'] = None
                 ret['profit'] = 0
 
                 backtest_data.append(ret)
@@ -194,7 +203,9 @@ def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):
         print(result_df)
         return result_df.to_json()
 
-    except Exception as e: print(e); return
+    except Exception as e: 
+        print(e)
+        return
 
 
 
@@ -202,5 +213,6 @@ if __name__ == '__main__':
     try:
         # run_backtest('strategy1', 'bb_strategy_directed')
         asyncio.run(main())
-    except Exception:
+    except Exception as e:
+        print(e)
         pass

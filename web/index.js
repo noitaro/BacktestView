@@ -128,74 +128,78 @@ var app = new Vue({
 
             array_clear(this.trading_vue.onchart, this.backtest.method_name);
 
-            if (ohlcv_data != null) {
-                const result_df = await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name, this.backtest.size)();
-                const ret = JSON.parse(result_df);
-                const chart_data = get_chart_data(ret.timestamp, [ret.type, ret.price, ret.label]);
-
-                this.trading_vue.onchart.push({ name: this.backtest.method_name, type: 'Trades', data: chart_data });
-
-                let desserts = [];
-                let total_profit = 0;
-                idx = 0;
-                while (true) {
-                    if (ret.timestamp[idx] == null) break;
-
-                    total_profit += ret.profit[idx];
-                    const dessert1 = {
-                        'type1': ret.type[idx] == 0 ? 'ショートエントリー' : 'ロングエントリー',
-                        'type2': ret.type[idx] == 0 ? 'ショートを決済' : 'ロングを決済',
-                        'datetime1': ret.datetime[idx],
-                        'datetime2': ret.execution_datetime[idx],
-                        'price1': ret.price[idx],
-                        'price2': ret.execution_price[idx],
-                        'profit': ret.profit[idx],
-                        'total_profit': Math.round(total_profit * 1000) / 1000 // 小数点第 4 位で四捨五入
-                    };
-                    desserts.push(dessert1);
-                    idx += 1;
-                }
-
-
-                this.desserts = desserts;
-
-                const linechart_labels = desserts.map(x => x.datetime2);
-                const linechart_data = desserts.map(x => x.total_profit);
-
-                Vue.component('line-chart', {
-                    extends: VueChartJs.Line,
-                    mounted() {
-                        this.renderChart({
-                            labels: linechart_labels,
-                            datasets: [
-                                {
-                                    label: 'USDT',
-                                    data: linechart_data
-                                }
-                            ]
-                        }, {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            elements: {
-                                line: {
-                                    tension: 0
-                                }
-                            },
-                            animation: {
-                                duration: 0
-                            },
-                            hove: {
-                                animationDuration: 0
-                            },
-                            responsiveAnimationDuration: 0
-                        })
-                    }
-                });
-
-
-
-
+            if (ohlcv_data == null) {
+                this.backtest.loading = false;
+                return;
             }
+
+            const result_df = await eel.run_backtest(ohlcv_data, this.backtest.module_name, this.backtest.method_name, this.backtest.size)();
+            if (result_df == null) {
+                this.backtest.loading = false;
+                return;
+            }
+
+            const ret = JSON.parse(result_df);
+            const chart_data = get_chart_data(ret.timestamp, [ret.type, ret.price, ret.label]);
+
+            this.trading_vue.onchart.push({ name: this.backtest.method_name, type: 'Trades', data: chart_data });
+
+            let desserts = [];
+            let total_profit = 0;
+            idx = 0;
+            while (true) {
+                if (ret.timestamp[idx] == null) break;
+
+                total_profit += ret.profit[idx];
+                const dessert1 = {
+                    'type1': ret.type[idx] == 0 ? 'ショートエントリー' : 'ロングエントリー',
+                    'type2': ret.type[idx] == 0 ? 'ショートを決済' : 'ロングを決済',
+                    'datetime1': ret.datetime[idx],
+                    'datetime2': ret.execution_datetime[idx] ?? 'まだ',
+                    'price1': ret.price[idx],
+                    'price2': ret.execution_price[idx],
+                    'profit': ret.profit[idx],
+                    'total_profit': Math.round(total_profit * 1000) / 1000 // 小数点第 4 位で四捨五入
+                };
+                desserts.push(dessert1);
+                idx += 1;
+            }
+
+
+            this.desserts = desserts;
+
+            const linechart_labels = desserts.map(x => x.datetime2);
+            const linechart_data = desserts.map(x => x.total_profit);
+
+            Vue.component('line-chart', {
+                extends: VueChartJs.Line,
+                mounted() {
+                    this.renderChart({
+                        labels: linechart_labels,
+                        datasets: [
+                            {
+                                label: 'USDT',
+                                data: linechart_data
+                            }
+                        ]
+                    }, {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        elements: {
+                            line: {
+                                tension: 0
+                            }
+                        },
+                        animation: {
+                            duration: 0
+                        },
+                        hove: {
+                            animationDuration: 0
+                        },
+                        responsiveAnimationDuration: 0
+                    })
+                }
+            });
 
             this.backtest.loading = false;
         },

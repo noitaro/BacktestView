@@ -19,8 +19,9 @@
                 <v-container fluid class="ma-0 pa-0 split">
 
                     <v-row no-gutters>
-                        <v-col cols="auto">
 
+                        <!-- OHLCV 取得 -->
+                        <v-col cols="auto">
                             <v-dialog v-model="dialog1" max-width="600px">
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-btn color="secondary" dark v-bind="attrs" v-on="on" small tile>
@@ -76,14 +77,13 @@
                                         </v-btn>
                                     </v-card-actions>
                                 </v-card>
-
                             </v-dialog>
                         </v-col>
 
                         <v-spacer></v-spacer>
 
+                        <!-- インジケーター -->
                         <v-col cols="auto">
-
                             <v-dialog v-model="dialog2" max-width="600px">
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-btn color="secondary" dark v-bind="attrs" v-on="on" small tile>
@@ -131,6 +131,7 @@
                             </v-dialog>
                         </v-col>
 
+                        <!-- バックテスト -->
                         <v-col cols="auto">
                             <v-dialog v-model="dialog3" max-width="600px">
                                 <template v-slot:activator="{ on, attrs }">
@@ -177,6 +178,7 @@
                             </v-dialog>
                         </v-col>
 
+                        <!-- 損益グラフ -->
                         <v-col cols="auto">
                             <v-dialog v-model="dialog4" max-width="600px">
                                 <template v-slot:activator="{ on, attrs }">
@@ -202,6 +204,8 @@
                         </v-col>
 
                     </v-row>
+
+                    <!-- トレビュー -->
                     <v-row no-gutters>
                         <v-col>
                             <trading-vue class="ma-0" :data="trading_vue" :width="width" :height="height"
@@ -209,6 +213,8 @@
                             </trading-vue>
                         </v-col>
                     </v-row>
+
+                    <!-- バックテスト結果 -->
                     <v-row no-gutters>
                         <v-col>
                             <v-simple-table height="200" fixed-header>
@@ -226,13 +232,18 @@
                                     <tbody>
                                         <tr v-for="(item, index) in desserts" :key="index">
                                             <td class="">{{ index+1 }}</td>
-                                            <td class="pa-0">{{ item.type1 }}<v-divider></v-divider>{{ item.type2 }}</td>
-                                            <td class="pa-0">{{ item.datetime1 }}<v-divider></v-divider>{{ item.datetime2 }}</td>
-                                            <td class="pa-0">${{ item.price1 }}<v-divider></v-divider>${{ item.price2 }}</td>
+                                            <td class="pa-0">{{ item.type1 }}<v-divider></v-divider>{{ item.type2 }}
+                                            </td>
+                                            <td class="pa-0">{{ item.datetime1 }}<v-divider></v-divider>{{
+                                                item.datetime2 }}</td>
+                                            <td class="pa-0">${{ item.price1 }}<v-divider></v-divider>${{ item.price2 }}
+                                            </td>
                                             <td class="">
                                                 <v-tooltip bottom>
                                                     <template v-slot:activator="{ on, attrs }">
-                                                        <span v-bind="attrs" v-on="on" v-bind:class="{ 'red--text': item.profit < 0 }">${{ item.profit }}</span>
+                                                        <span v-bind="attrs" v-on="on"
+                                                            v-bind:class="{ 'red--text': item.profit < 0 }">${{
+                                                            item.profit }}</span>
                                                     </template>
                                                     <span>{{ item.total_profit }}</span>
                                                 </v-tooltip>
@@ -240,7 +251,9 @@
                                             <td class="pa-0">
                                                 <v-tooltip bottom>
                                                     <template v-slot:activator="{ on, attrs }">
-                                                        <span v-bind="attrs" v-on="on" v-bind:class="{ 'red--text': item.total_profit < 0 }">${{ item.total_profit }}</span>
+                                                        <span v-bind="attrs" v-on="on"
+                                                            v-bind:class="{ 'red--text': item.total_profit < 0 }">${{
+                                                            item.total_profit }}</span>
                                                     </template>
                                                     <span>{{ item.total_profit }}</span>
                                                 </v-tooltip>
