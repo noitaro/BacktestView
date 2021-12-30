@@ -130,7 +130,6 @@ def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):
     try:
 
         backtest_data = []
-        total_profit = 0
         for idx in range(len(df)):
             ohlcv = df[0:idx+1]
 
@@ -147,7 +146,6 @@ def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):
                 ret['execution_price'] = 0
                 ret['execution_datetime'] = '　'
                 ret['profit'] = 0
-                ret['total_profit'] = 0
 
                 backtest_data.append(ret)
                 pass
@@ -183,14 +181,10 @@ def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):
                         if backtest_data[idx]['type'] == 0:
                             # Sell marker
                             backtest_data[idx]['profit'] = (backtest_data[idx]['price'] - backtest_data[idx]['execution_price']) * size
-                            total_profit += backtest_data[idx]['profit']
-                            backtest_data[idx]['total_profit'] = total_profit
                             pass
                         else:
                             # Buy marker
                             backtest_data[idx]['profit'] = (backtest_data[idx]['execution_price'] - backtest_data[idx]['price']) * size
-                            total_profit += backtest_data[idx]['profit']
-                            backtest_data[idx]['total_profit'] = total_profit
                             pass
                         pass
                     pass

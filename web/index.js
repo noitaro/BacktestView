@@ -135,11 +135,13 @@ var app = new Vue({
 
                 this.trading_vue.onchart.push({ name: this.backtest.method_name, type: 'Trades', data: chart_data });
 
-                let desserts = []
+                let desserts = [];
+                let total_profit = 0;
                 idx = 0;
                 while (true) {
                     if (ret.timestamp[idx] == null) break;
 
+                    total_profit += ret.profit[idx];
                     const dessert1 = {
                         'type1': ret.type[idx] == 0 ? 'ショートエントリー' : 'ロングエントリー',
                         'type2': ret.type[idx] == 0 ? 'ショートを決済' : 'ロングを決済',
@@ -148,44 +150,45 @@ var app = new Vue({
                         'price1': ret.price[idx],
                         'price2': ret.execution_price[idx],
                         'profit': ret.profit[idx],
-                        'total_profit': ret.total_profit[idx]
+                        'total_profit': Math.round(total_profit * 1000) / 1000 // 小数点第 4 位で四捨五入
                     };
                     desserts.push(dessert1);
                     idx += 1;
                 }
 
 
-                this.desserts = desserts
+                this.desserts = desserts;
 
-                const labels = get_chart_data(ohlcv_data.datetime);
-                let datasetsData = [];
-
-                let total_profit = 0;
-                labels.forEach(element1 => {
-                    for (let index = 0; index < desserts.length; index++) {
-                        const element2 = desserts[index];
-                        if (element1[0] == element2.datetime2) {
-                            total_profit = element2.total_profit;
-                            break;
-                        }
-                    }
-                    datasetsData.push(total_profit);
-                });
-
+                const linechart_labels = desserts.map(x => x.datetime2);
+                const linechart_data = desserts.map(x => x.total_profit);
 
                 Vue.component('line-chart', {
                     extends: VueChartJs.Line,
                     mounted() {
                         this.renderChart({
-                            labels: labels,
+                            labels: linechart_labels,
                             datasets: [
                                 {
                                     label: 'USDT',
-                                    backgroundColor: '#f87979',
-                                    data: datasetsData
+                                    data: linechart_data
                                 }
                             ]
-                        }, { responsive: true, maintainAspectRatio: false })
+                        }, {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            elements: {
+                                line: {
+                                    tension: 0
+                                }
+                            },
+                            animation: {
+                                duration: 0
+                            },
+                            hove: {
+                                animationDuration: 0
+                            },
+                            responsiveAnimationDuration: 0
+                        })
                     }
                 });
 
