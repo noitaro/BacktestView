@@ -1,8 +1,11 @@
+import datetime
 from typing import Dict
 import eel # pip install eel
 import ccxt # pip install ccxt
 import asyncio
-import pandas as pd  # pip install pandas
+from gevent.greenlet import Greenlet
+import pandas as pd
+from pandas.core.frame import DataFrame  # pip install pandas
 import pandas_ta as ta  # pip install -U git+https://github.com/twopirllc/pandas-ta
 import sub_script as utility
 import importlib
@@ -13,6 +16,7 @@ import sys
 # pip install PyInstaller
 # python -m eel BacktestView.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
 
+greenlet: Greenlet = None
 
 async def main():
     print(__file__)
@@ -22,27 +26,76 @@ async def main():
 
     pass
 
+def real_time_thread(exchange_name: str, symbol_name: str, timeframe: str, since_datetime: datetime):
+    print(f'real_time_thread: EXCHANGE={exchange_name}, SYMBOL={symbol_name}, TIMEFRAME={timeframe}, DATETIME={utility.str_format_datetime(since_datetime)}')
+    global is_real_time
+
+    since_timestamp: int = utility.datetimeToTimestamp(since_datetime)
+    tmp_timestamp: int = since_timestamp
+
+    while is_real_time:
+        print('real_time_thread: while')
+        ohlcv_df = fetch_ohlcv(exchange_name, symbol_name, timeframe, tmp_timestamp, None)
+        end_datetime = utility.timestampToDatetime(ohlcv_df.iloc[-1].at['timestamp'])
+        tmp_timestamp = utility.datetimeToTimestamp(end_datetime)
+        eel.sleep(5.0) # Use eel.sleep(), not time.sleep()
+
+
+is_real_time = False
+@eel.expose
+def set_is_real_time(is_on: bool):
+    global is_real_time
+
+    print(f"is_real_time: {is_real_time}")
+    is_real_time = is_on
+    print(f"is_real_time: {is_real_time}")
+    pass
 
 @eel.expose
-def get_ohlcv(from_date: str, to_date: str):
-    if from_date is None or from_date == '' or \
+def get_ohlcv(exchange_name: str, symbol_name: str, timeframe: str, from_date: str, to_date: str):
+    global greenlet
+    if greenlet is not None:
+        greenlet.kill()
+        pass
+
+    if exchange_name is None or exchange_name == '' or \
+        symbol_name is None or symbol_name == '' or \
+        timeframe is None or timeframe == '' or \
+        from_date is None or from_date == '' or \
         to_date is None or to_date == '':
         return None
 
-    print(f'get_ohlcv: FROM={from_date}, TO={to_date}')
-
+    print(f'get_ohlcv: EXCHANGE={exchange_name}, SYMBOL={symbol_name}, TIMEFRAME={timeframe}, FROM={from_date}, TO={to_date}')
+    
     # 1609459200000 <- '2021-01-01'
-    from_timestamp = utility.dateToTimestamp(from_date)
-    to_timestamp = utility.dateToTimestamp(to_date)
+    from_timestamp = utility.dateToTimestamp(from_date, 0, 0, 0)
+    to_timestamp = utility.dateToTimestamp(to_date, 23, 59, 59)
     if from_timestamp >= to_timestamp:
         return None
 
-    ohlcv_df = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-    bybit = ccxt.bybit()
+    ohlcv_df = fetch_ohlcv(exchange_name, symbol_name, timeframe, from_timestamp, to_timestamp)
+    end_datetime = utility.timestampToDatetime(ohlcv_df.iloc[-1].at['timestamp'])
+
+    greenlet = eel.spawn(real_time_thread, exchange_name, symbol_name, timeframe, end_datetime)
+    return ohlcv_df.to_json()
+
+def fetch_ohlcv(exchange_name: str, symbol_name: str, timeframe: str, from_timestamp: int, to_timestamp: int = None):
+    print(f'fetch_ohlcv: EXCHANGE={exchange_name}, SYMBOL={symbol_name}, TIMEFRAME={timeframe}, FROM={from_timestamp}, TO={to_timestamp}')
+    
+    ohlcv_df: DataFrame = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    exchange = eval('ccxt.' + exchange_name + '()')
+    # exchange = ccxt.bybit()
+
     tmp_timestamp = from_timestamp
     while True:
-        tmp_ohlcv = bybit.fetch_ohlcv(symbol='BTC/USD', timeframe='1h', since=tmp_timestamp)
+        tmp_ohlcv = exchange.fetch_ohlcv(symbol=symbol_name, timeframe=timeframe, since=tmp_timestamp)
         tmp_df = pd.DataFrame(tmp_ohlcv, columns=ohlcv_df.columns)
+        print(tmp_df)
+
+        # 取得できない場合、終了
+        if tmp_df.empty:
+            break
+
         ohlcv_df = ohlcv_df.append(tmp_df, ignore_index=True)
 
         start_datetime = utility.timestampToDatetime(tmp_df.iloc[0].at['timestamp'])
@@ -55,8 +108,10 @@ def get_ohlcv(from_date: str, to_date: str):
         tmp_timestamp = int(end_datetime.timestamp() * 1000)
         
         # 終了データまで取得した場合、終了
-        if tmp_timestamp >= to_timestamp:
-            break
+        if  to_timestamp is not None:
+            if tmp_timestamp >= to_timestamp:
+                break
+        
         pass
 
     # 重複行削除
@@ -67,15 +122,16 @@ def get_ohlcv(from_date: str, to_date: str):
     ohlcv_df.sort_values('timestamp', ascending=True, inplace=True, ignore_index=True)
 
     # 多い分を削除
-    # fetch_ohlcvで多めに取れているため
-    ohlcv_df = ohlcv_df[ohlcv_df['timestamp'] <= to_timestamp]
+    if  to_timestamp is not None:
+        # fetch_ohlcvで多めに取れているため
+        ohlcv_df = ohlcv_df[ohlcv_df['timestamp'] <= to_timestamp]
+        pass
 
     # timestamp -> datetime
     f_to_datetime = lambda x: utility.str_format_datetime(utility.timestampToDatetime(str(x)))
     ohlcv_df['datetime'] = ohlcv_df['timestamp'].map(f_to_datetime)
 
-    return ohlcv_df.to_json()
-
+    return ohlcv_df
 
 @eel.expose
 def get_vwma(timestamp, close, volume, length):

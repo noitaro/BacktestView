@@ -9,119 +9,143 @@ var app = new Vue({
     components: {
         'trading-vue': TradingVue
     },
-    data() {
-        return {
-            trading_vue: { chart: null, onchart: [], offchart: [] },
-            line_chart: {
-                labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                datasets: [{ label: 'sample', borderColor: '#0000ff', data: [100, 90, 60, 70, 50, 30, 40, 50, 60, 100], fill: false }]
-            },
-            options: {
-                title: { display: true, text: 'Line chart' }, legend: { display: false },
-            },
-            timezone: 9,
-            dialog1: false,
-            dialog2: false,
-            dialog3: false,
-            dialog4: false,
-            loading_ohlcv: false,
-            width: window.innerWidth,
-            height: window.innerHeight - innerHeightOffset,
-            from_date: '2021-12-11',
-            to_date: '',
-            from_date_menu: false,
-            to_date_menu: false,
-            sheet: false,
+    data: {
+        trading_vue: { chart: null, onchart: [], offchart: [] },
+        line_chart: {
+            labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            datasets: [{ label: 'sample', borderColor: '#0000ff', data: [100, 90, 60, 70, 50, 30, 40, 50, 60, 100], fill: false }]
+        },
+        options: {
+            title: { display: true, text: 'Line chart' }, legend: { display: false },
+        },
+        ohlcv: {
+            loading: false,
+            exchange: {selected: 'bybit', items: ['bybit', 'bitflyer', 'binance',]},
+            symbol: { selected: 'BTC/USD', items: ['BTC/USD',] },
+            timeframe: { selected: '1h', items: ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M',] },
+            from: { date: '2021-12-11', picker_menu: false },
+            to: { date: '2021-12-11', picker_menu: false },
+            real_time: { loading: false, isChecked: false },
+        },
+        timezone: 9,
+        dialog1: false,
+        dialog2: false,
+        dialog3: false,
+        dialog4: false,
+        width: window.innerWidth,
+        height: window.innerHeight - innerHeightOffset,
+        sheet: false,
+        indicator: {
             switch_vwma20: { loading: false, isChecked: false },
             switch_vwma25: { loading: false, isChecked: false },
             switch_cci25: { loading: false, isChecked: false },
-            switch_bb20: { loading: false, isChecked: false },
-            backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, size: 0.01 },
-            desserts: []
-        };
+            switch_bb20: { loading: false, isChecked: false }
+        },
+        backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, size: 0.01 },
+        desserts: []
     },
     created() {
-        const d = new Date();
         // 日付文字列フォーマット (2021-01-01)
-        this.to_date = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`.replace(/\n|\r/g, '');
+        let from_date = new Date();
+        from_date.setMonth(from_date.getMonth() - 1);
+        this.ohlcv.from.date = `${from_date.getFullYear()}-${(from_date.getMonth() + 1).toString().padStart(2, '0')}-${from_date.getDate().toString().padStart(2, '0')}`.replace(/\n|\r/g, '');
+        // 日付文字列フォーマット (2021-01-01)
+        let to_date = new Date();
+        this.ohlcv.to.date = `${to_date.getFullYear()}-${(to_date.getMonth() + 1).toString().padStart(2, '0')}-${to_date.getDate().toString().padStart(2, '0')}`.replace(/\n|\r/g, '');
     },
     methods: {
+        async changed_real_time() {
+            this.ohlcv.real_time.loading = true;
+            await eel.set_is_real_time(this.ohlcv.real_time.isChecked)();
+            this.ohlcv.real_time.loading = false;
+        },
         async getData_ohlcv() {
-            this.loading_ohlcv = true;
+            this.ohlcv.loading = true;
 
-            const ohlcv_df = await eel.get_ohlcv(this.from_date, this.to_date)();
+            const ohlcv_df = await eel.get_ohlcv(
+                this.ohlcv.exchange.selected, 
+                this.ohlcv.symbol.selected, 
+                this.ohlcv.timeframe.selected, 
+                this.ohlcv.from.date, 
+                this.ohlcv.to.date)();
+
             if (ohlcv_df != null) {
                 const ohlcv = JSON.parse(ohlcv_df);
                 ohlcv_data = ohlcv;
 
                 const chart_data = get_chart_data(ohlcv.timestamp, [ohlcv.open, ohlcv.high, ohlcv.low, ohlcv.close, ohlcv.volume]);
-                this.trading_vue.chart = { name: 'BTCUSDT', type: 'Candles', data: chart_data };
+                this.trading_vue.chart = { name: this.getName(), type: 'Candles', data: chart_data };
             }
 
-            this.loading_ohlcv = false;
+            this.ohlcv.loading = false;
         },
         async changed_vwma20() {
-            this.switch_vwma20.loading = true;
+            this.indicator.switch_vwma20.loading = true;
+            const name = 'VWMA 20';
 
-            array_clear(this.trading_vue.onchart, 'VWMA, 20');
+            array_clear(this.trading_vue.onchart, name);
 
-            if (this.switch_vwma20.isChecked) {
+            if (this.indicator.switch_vwma20.isChecked) {
                 // VWMA 20
                 const vwma20_df = await eel.get_vwma(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.volume, 20)();
                 const vwma20 = JSON.parse(vwma20_df);
                 const chart_data = get_chart_data(vwma20.timestamp, [vwma20.vwma]);
-                this.trading_vue.onchart.push({ name: 'VWMA, 20', type: 'EMA', data: chart_data });
+                this.trading_vue.onchart.push({ name: name, type: 'EMA', data: chart_data });
             }
 
-            this.switch_vwma20.loading = false;
+            this.indicator.switch_vwma20.loading = false;
         },
         async changed_vwma25() {
-            this.switch_vwma25.loading = true;
+            this.indicator.switch_vwma25.loading = true;
+            const name = 'VWMA 25';
 
-            array_clear(this.trading_vue.onchart, 'VWMA, 25');
+            array_clear(this.trading_vue.onchart, name);
 
-            if (this.switch_vwma25.isChecked) {
+            if (this.indicator.switch_vwma25.isChecked) {
                 // VWMA 25
                 const vwma25_df = await eel.get_vwma(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.volume, 25)();
                 const vwma25 = JSON.parse(vwma25_df);
                 const chart_data = get_chart_data(vwma25.timestamp, [vwma25.vwma]);
-                this.trading_vue.onchart.push({ name: 'VWMA, 25', type: 'EMA', data: chart_data });
+                this.trading_vue.onchart.push({ name: name, type: 'EMA', data: chart_data });
             }
 
-            this.switch_vwma25.loading = false;
+            this.indicator.switch_vwma25.loading = false;
         },
         async changed_cci25() {
-            this.switch_cci25.loading = true;
+            this.indicator.switch_cci25.loading = true;
+            const name = 'CCI 25';
 
-            array_clear(this.trading_vue.offchart, 'CCI, 25');
+            array_clear(this.trading_vue.offchart, name);
 
-            if (this.switch_cci25.isChecked) {
+            if (this.indicator.switch_cci25.isChecked) {
 
                 // CCI 25
                 const cci25_df = await eel.get_cci(ohlcv_data.timestamp, ohlcv_data.close, ohlcv_data.close, ohlcv_data.close, 25)();
                 const cci25 = JSON.parse(cci25_df);
                 const chart_data = get_chart_data(cci25.timestamp, [cci25.cci]);
-                this.trading_vue.offchart.push({ name: 'CCI, 25', type: 'SMA', data: chart_data });
+                this.trading_vue.offchart.push({ name: name, type: 'SMA', data: chart_data });
             }
 
-            this.switch_cci25.loading = false;
+            this.indicator.switch_cci25.loading = false;
         },
         async changed_bb20() {
-            this.switch_bb20.loading = true;
+            this.indicator.switch_bb20.loading = true;
+            const name1 = 'BB 20 UPPER';
+            const name2 = 'BB 20 LOWER';
 
-            array_clear(this.trading_vue.onchart, 'BB, 20 UPPER');
-            array_clear(this.trading_vue.onchart, 'BB, 20 LOWER');
+            array_clear(this.trading_vue.onchart, name1);
+            array_clear(this.trading_vue.onchart, name2);
 
-            if (this.switch_bb20.isChecked) {
+            if (this.indicator.switch_bb20.isChecked) {
 
                 // BB 20
                 const bb20_df = await eel.get_bb(ohlcv_data.timestamp, ohlcv_data.close, 20)();
                 const bb20 = JSON.parse(bb20_df);
-                this.trading_vue.onchart.push({ name: 'BB, 20 UPPER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBU_20_2.0']]) });
-                this.trading_vue.onchart.push({ name: 'BB, 20 LOWER', type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBL_20_2.0']]) });
+                this.trading_vue.onchart.push({ name: name1, type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBU_20_2.0']]) });
+                this.trading_vue.onchart.push({ name: name2, type: 'SMA', data: get_chart_data(bb20.timestamp, [bb20['BBL_20_2.0']]) });
             }
 
-            this.switch_bb20.loading = false;
+            this.indicator.switch_bb20.loading = false;
         },
         async run_backtest() {
             this.backtest.loading = true;
@@ -170,6 +194,7 @@ var app = new Vue({
 
             const linechart_labels = desserts.map(x => x.datetime2);
             const linechart_data = desserts.map(x => x.total_profit);
+            const label = this.getName();
 
             Vue.component('line-chart', {
                 extends: VueChartJs.Line,
@@ -178,7 +203,7 @@ var app = new Vue({
                         labels: linechart_labels,
                         datasets: [
                             {
-                                label: 'USDT',
+                                label: label,
                                 data: linechart_data
                             }
                         ]
@@ -206,6 +231,9 @@ var app = new Vue({
         handleResize() {
             this.width = window.innerWidth;
             this.height = window.innerHeight - innerHeightOffset;
+        },
+        getName() {
+            return `${this.ohlcv.exchange.selected} ${this.ohlcv.symbol.selected} ${this.ohlcv.timeframe.selected}`;
         }
     },
     mounted: function () {

@@ -35,33 +35,58 @@
                                     <v-card-text>
                                         <v-container>
                                             <v-row>
+                                                <!-- EXCHANGE -->
                                                 <v-col cols="12" sm="6">
-                                                    <v-menu v-model="from_date_menu" :close-on-content-click="false"
-                                                        :return-value.sync="date" transition="scale-transition" offset-y
-                                                        min-width="auto">
+                                                    <v-select v-model="ohlcv.exchange.selected"
+                                                        :items="ohlcv.exchange.items" label="Exchange" dense outlined>
+                                                    </v-select>
+                                                </v-col>
+                                            </v-row>
+                                            <v-row>
+                                                <!-- SYMBOL -->
+                                                <v-col cols="12" sm="6">
+                                                    <v-select v-model="ohlcv.symbol.selected"
+                                                        :items="ohlcv.symbol.items" label="Symbol" dense outlined>
+                                                    </v-select>
+                                                </v-col>
+                                                <!-- TIME FRAME -->
+                                                <v-col cols="12" sm="6">
+                                                    <v-select v-model="ohlcv.timeframe.selected"
+                                                        :items="ohlcv.timeframe.items" label="Time frame" dense
+                                                        outlined>
+                                                    </v-select>
+                                                </v-col>
+                                            </v-row>
+                                            <v-row>
+                                                <!-- FROM -->
+                                                <v-col cols="12" sm="6">
+                                                    <v-menu v-model="ohlcv.from.picker_menu"
+                                                        :close-on-content-click="false" :return-value.sync="date"
+                                                        transition="scale-transition" offset-y min-width="auto">
                                                         <template v-slot:activator="{ on, attrs }">
-                                                            <v-text-field v-model="from_date" label="From Date"
+                                                            <v-text-field v-model="ohlcv.from.date" label="From Date"
                                                                 prepend-icon="mdi-calendar" readonly clearable
                                                                 v-bind="attrs" v-on="on" dense>
                                                             </v-text-field>
                                                         </template>
-                                                        <v-date-picker v-model="from_date" no-title scrollable
-                                                            @input="from_date_menu = false">
+                                                        <v-date-picker v-model="ohlcv.from.date" no-title scrollable
+                                                            @input="ohlcv.from.picker_menu = false">
                                                         </v-date-picker>
                                                     </v-menu>
                                                 </v-col>
+                                                <!-- TO -->
                                                 <v-col cols="12" sm="6">
-                                                    <v-menu v-model="to_date_menu" :close-on-content-click="false"
-                                                        :return-value.sync="date" transition="scale-transition" offset-y
-                                                        min-width="auto">
+                                                    <v-menu v-model="ohlcv.to.picker_menu"
+                                                        :close-on-content-click="false" :return-value.sync="date"
+                                                        transition="scale-transition" offset-y min-width="auto">
                                                         <template v-slot:activator="{ on, attrs }">
-                                                            <v-text-field v-model="to_date" label="To Date"
+                                                            <v-text-field v-model="ohlcv.to.date" label="To Date"
                                                                 prepend-icon="mdi-calendar" readonly clearable
                                                                 v-bind="attrs" v-on="on" dense>
                                                             </v-text-field>
                                                         </template>
-                                                        <v-date-picker v-model="to_date" no-title scrollable
-                                                            @input="to_date_menu = false">
+                                                        <v-date-picker v-model="ohlcv.to.date" no-title scrollable
+                                                            @input="ohlcv.to.picker_menu = false">
                                                         </v-date-picker>
                                                     </v-menu>
                                                 </v-col>
@@ -71,7 +96,11 @@
                                     <v-divider></v-divider>
                                     <v-card-actions>
                                         <v-spacer></v-spacer>
-                                        <v-btn :loading="loading_ohlcv" :disabled="loading_ohlcv" color="secondary"
+                                        <v-switch class="mr-5" v-model="ohlcv.real_time.isChecked" label="リアルタイム"
+                                            :loading="ohlcv.real_time.loading" :disabled="ohlcv.real_time.loading"
+                                            color="secondary" @change="changed_real_time" dense>
+                                        </v-switch>
+                                        <v-btn :loading="ohlcv.loading" :disabled="ohlcv.loading" color="secondary"
                                             @click="getData_ohlcv">
                                             取得
                                         </v-btn>
@@ -98,30 +127,31 @@
                                         <v-container>
                                             <v-row>
                                                 <v-col cols="auto">
-                                                    <v-switch class="ma-1" v-model="switch_vwma20.isChecked"
-                                                        label="VWMA 20" :loading="switch_vwma20.loading"
-                                                        :disabled="switch_vwma20.loading" color="secondary"
+                                                    <v-switch class="ma-1" v-model="indicator.switch_vwma20.isChecked"
+                                                        label="VWMA 20" :loading="indicator.switch_vwma20.loading"
+                                                        :disabled="indicator.switch_vwma20.loading" color="secondary"
                                                         @change="changed_vwma20" dense>
                                                     </v-switch>
                                                 </v-col>
                                                 <v-col cols="auto">
-                                                    <v-switch class="ma-1" v-model="switch_vwma25.isChecked"
-                                                        label="VWMA 25" :loading="switch_vwma25.loading"
-                                                        :disabled="switch_vwma25.loading" color="secondary"
+                                                    <v-switch class="ma-1" v-model="indicator.switch_vwma25.isChecked"
+                                                        label="VWMA 25" :loading="indicator.switch_vwma25.loading"
+                                                        :disabled="indicator.switch_vwma25.loading" color="secondary"
                                                         @change="changed_vwma25" dense>
                                                     </v-switch>
                                                 </v-col>
                                                 <v-col cols="auto">
-                                                    <v-switch class="ma-1" v-model="switch_cci25.isChecked"
-                                                        label="CCI 25" :loading="switch_cci25.loading"
-                                                        :disabled="switch_cci25.loading" color="secondary"
+                                                    <v-switch class="ma-1" v-model="indicator.switch_cci25.isChecked"
+                                                        label="CCI 25" :loading="indicator.switch_cci25.loading"
+                                                        :disabled="indicator.switch_cci25.loading" color="secondary"
                                                         @change="changed_cci25" dense>
                                                     </v-switch>
                                                 </v-col>
                                                 <v-col cols="auto">
-                                                    <v-switch class="ma-1" v-model="switch_bb20.isChecked" label="BB 20"
-                                                        :loading="switch_bb20.loading" :disabled="switch_bb20.loading"
-                                                        color="secondary" @change="changed_bb20" dense>
+                                                    <v-switch class="ma-1" v-model="indicator.switch_bb20.isChecked"
+                                                        label="BB 20" :loading="indicator.switch_bb20.loading"
+                                                        :disabled="indicator.switch_bb20.loading" color="secondary"
+                                                        @change="changed_bb20" dense>
                                                     </v-switch>
                                                 </v-col>
                                             </v-row>
