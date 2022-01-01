@@ -20,7 +20,7 @@ var app = new Vue({
         },
         ohlcv: {
             loading: false,
-            exchange: {selected: 'bybit', items: ['bybit', 'bitflyer', 'binance',]},
+            exchange: { selected: 'bybit', items: ['bybit', 'bitflyer', 'binance',] },
             symbol: { selected: 'BTC/USD', items: ['BTC/USD',] },
             timeframe: { selected: '1h', items: ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M',] },
             from: { date: '2021-12-11', picker_menu: false },
@@ -63,10 +63,10 @@ var app = new Vue({
             this.ohlcv.loading = true;
 
             const ohlcv_df = await eel.get_ohlcv(
-                this.ohlcv.exchange.selected, 
-                this.ohlcv.symbol.selected, 
-                this.ohlcv.timeframe.selected, 
-                this.ohlcv.from.date, 
+                this.ohlcv.exchange.selected,
+                this.ohlcv.symbol.selected,
+                this.ohlcv.timeframe.selected,
+                this.ohlcv.from.date,
                 this.ohlcv.to.date)();
 
             if (ohlcv_df != null) {
@@ -274,4 +274,35 @@ function get_chart_data(timestamp, data) {
     }
 
     return chart_data;
+}
+
+eel.expose(say_hello_js); // Expose this function to Python
+function say_hello_js(ohlcv_df) {
+    if (ohlcv_df != null) {
+        const ohlcv = JSON.parse(ohlcv_df);
+
+        const chart_data = get_chart_data(ohlcv.timestamp, [ohlcv.open, ohlcv.high, ohlcv.low, ohlcv.close, ohlcv.volume]);
+
+        let chart = app.$data.trading_vue.chart;
+        let index1 = 0;
+
+        chart_data.forEach(element => {
+            let isPush = false;
+            while (chart.data.length > index1) {
+                if (chart.data[index1][0] == element[0]) {
+                    chart.data[index1][4] = element[4];
+                    chart.data[index1][5] = element[5];
+                    isPush =true;
+                    break;
+                }
+                index1++;
+            }
+
+            if (!isPush) {
+                chart.data.push(element);
+            }
+        });
+
+        app.$data.trading_vue.chart = chart;
+    }
 }

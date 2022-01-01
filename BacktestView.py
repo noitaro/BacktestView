@@ -38,6 +38,7 @@ def real_time_thread(exchange_name: str, symbol_name: str, timeframe: str, since
         ohlcv_df = fetch_ohlcv(exchange_name, symbol_name, timeframe, tmp_timestamp, None)
         end_datetime = utility.timestampToDatetime(ohlcv_df.iloc[-1].at['timestamp'])
         tmp_timestamp = utility.datetimeToTimestamp(end_datetime)
+        eel.say_hello_js(ohlcv_df.to_json()) # Call a Javascript function
         eel.sleep(5.0) # Use eel.sleep(), not time.sleep()
 
 
