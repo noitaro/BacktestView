@@ -50,7 +50,7 @@ python BacktestView.py
 # EXE化手順
 ## コンソール無し版
 ```
-python -m eel BacktestView.py web --noconsole --icon=Icojam-Animals-01-horse.ico --onefile
+python -m eel BacktestView.py web --onefile --icon=Icojam-Animals-01-horse.ico --noconsole
 ```
 
 ## コンソールあり版
