@@ -9,6 +9,7 @@ import importlib
 from decimal import Decimal
 import os
 import sys
+import numpy as np
 
 # pip install PyInstaller
 # python -m eel BacktestView.py web --onefile --noconsole --icon=Icojam-Animals-01-horse.ico
@@ -24,12 +25,13 @@ async def main():
 
 
 @eel.expose
-def get_ohlcv(from_date: str, to_date: str):
-    if from_date is None or from_date == '' or \
+def get_ohlcv(timeframe: str, from_date: str, to_date: str):
+    if timeframe is None or timeframe == '' or \
+        from_date is None or from_date == '' or \
         to_date is None or to_date == '':
         return None
 
-    print(f'get_ohlcv: FROM={from_date}, TO={to_date}')
+    print(f'get_ohlcv: TIMEFRAME={timeframe}, FROM={from_date}, TO={to_date}')
 
     # 1609459200000 <- '2021-01-01'
     from_timestamp = utility.dateToTimestamp(from_date)
@@ -41,7 +43,7 @@ def get_ohlcv(from_date: str, to_date: str):
     bybit = ccxt.bybit()
     tmp_timestamp = from_timestamp
     while True:
-        tmp_ohlcv = bybit.fetch_ohlcv(symbol='BTC/USD', timeframe='1h', since=tmp_timestamp)
+        tmp_ohlcv = bybit.fetch_ohlcv(symbol='BTC/USD', timeframe=timeframe, since=tmp_timestamp)
         tmp_df = pd.DataFrame(tmp_ohlcv, columns=ohlcv_df.columns)
         ohlcv_df = ohlcv_df.append(tmp_df, ignore_index=True)
 
@@ -111,6 +113,26 @@ def get_bb(timestamp, close, length):
     df = df.merge(df_bbands, on='timestamp')
 
     return df.loc[:,['timestamp', f'BBL_{length}_2.0', f'BBM_{length}_2.0', f'BBU_{length}_2.0']].to_json()
+
+@eel.expose
+def get_rci(timestamp, close, timeperiod: int):
+    print(f'get_rci: timeperiod={timeperiod}')
+    df = pd.DataFrame()
+    df['timestamp'] = pd.DataFrame.from_dict(timestamp, orient='index')
+    df['close'] = pd.DataFrame.from_dict(close, orient='index')
+    df['cci'] = rci(df['close'], timeperiod)
+    return df.loc[:,['timestamp', 'cci']].to_json()
+
+def rci(close: np.ndarray, timeperiod: int) -> np.ndarray:
+    rci = np.full_like(close, np.nan)
+    rank_period = np.arange(1, timeperiod + 1)
+    for i in range(timeperiod - 1, len(close)):
+        rank_price = close[i - timeperiod + 1:i + 1]
+        rank_price = np.argsort(np.argsort(rank_price)) + 1
+        aa = 6 * sum((rank_period - rank_price)**2)
+        bb = timeperiod * (timeperiod**2 - 1)
+        rci[i] = (1 - aa / bb) * 100
+    return rci
 
 @eel.expose
 def run_backtest(ohlcv, module_name: str, method_name: str, size: Decimal):

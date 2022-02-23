@@ -31,11 +31,16 @@ var app = new Vue({
             to_date: '',
             from_date_menu: false,
             to_date_menu: false,
+            timeframe: '1h',
+            timeframe_items: ['1m','3m','5m','15m','30m','1h','2h','4h','6h','12h','1d','1w','1M','1y'],
             sheet: false,
             switch_vwma20: { loading: false, isChecked: false },
             switch_vwma25: { loading: false, isChecked: false },
             switch_cci25: { loading: false, isChecked: false },
             switch_bb20: { loading: false, isChecked: false },
+            switch_rci9: { loading: false, isChecked: false },
+            switch_rci26: { loading: false, isChecked: false },
+            switch_rci52: { loading: false, isChecked: false },
             backtest: { module_name: 'strategy1', method_name: 'bb_strategy_directed', loading: false, size: 0.01 },
             desserts: []
         };
@@ -49,7 +54,7 @@ var app = new Vue({
         async getData_ohlcv() {
             this.loading_ohlcv = true;
 
-            const ohlcv_df = await eel.get_ohlcv(this.from_date, this.to_date)();
+            const ohlcv_df = await eel.get_ohlcv(this.timeframe, this.from_date, this.to_date)();
             if (ohlcv_df != null) {
                 const ohlcv = JSON.parse(ohlcv_df);
                 ohlcv_data = ohlcv;
@@ -122,6 +127,54 @@ var app = new Vue({
             }
 
             this.switch_bb20.loading = false;
+        },
+        async changed_rci9() {
+            this.switch_rci9.loading = true;
+
+            array_clear(this.trading_vue.offchart, 'RCI, 9');
+
+            if (this.switch_rci9.isChecked) {
+
+                // RCI 9
+                const rci9_df = await eel.get_rci(ohlcv_data.timestamp, ohlcv_data.close, 9)();
+                const rci9 = JSON.parse(rci9_df);
+                const chart_data = get_chart_data(rci9.timestamp, [rci9.cci]);
+                this.trading_vue.offchart.push({ name: 'RCI, 9', type: 'SMA', data: chart_data });
+            }
+
+            this.switch_rci9.loading = false;
+        },
+        async changed_rci26() {
+            this.switch_rci26.loading = true;
+
+            array_clear(this.trading_vue.offchart, 'RCI, 26');
+
+            if (this.switch_rci26.isChecked) {
+
+                // RCI 26
+                const rci26_df = await eel.get_rci(ohlcv_data.timestamp, ohlcv_data.close, 26)();
+                const rci26 = JSON.parse(rci26_df);
+                const chart_data = get_chart_data(rci26.timestamp, [rci26.cci]);
+                this.trading_vue.offchart.push({ name: 'RCI, 26', type: 'SMA', data: chart_data });
+            }
+
+            this.switch_rci26.loading = false;
+        },
+        async changed_rci52() {
+            this.switch_rci52.loading = true;
+
+            array_clear(this.trading_vue.offchart, 'RCI, 52');
+
+            if (this.switch_rci52.isChecked) {
+
+                // RCI 52
+                const rci52_df = await eel.get_rci(ohlcv_data.timestamp, ohlcv_data.close, 52)();
+                const rci52 = JSON.parse(rci52_df);
+                const chart_data = get_chart_data(rci52.timestamp, [rci52.cci]);
+                this.trading_vue.offchart.push({ name: 'RCI, 52', type: 'SMA', data: chart_data });
+            }
+
+            this.switch_rci52.loading = false;
         },
         async run_backtest() {
             this.backtest.loading = true;

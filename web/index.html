@@ -35,6 +35,11 @@
                                     <v-card-text>
                                         <v-container>
                                             <v-row>
+                                                <v-col cols="12" sm="3">
+                                                    <v-combobox clearable dense v-model="timeframe" :items="timeframe_items" label="Time Frame"></v-combobox>
+                                                </v-col>
+                                            </v-row>
+                                            <v-row>
                                                 <v-col cols="12" sm="6">
                                                     <v-menu v-model="from_date_menu" :close-on-content-click="false"
                                                         :return-value.sync="date" transition="scale-transition" offset-y
@@ -122,6 +127,26 @@
                                                     <v-switch class="ma-1" v-model="switch_bb20.isChecked" label="BB 20"
                                                         :loading="switch_bb20.loading" :disabled="switch_bb20.loading"
                                                         color="secondary" @change="changed_bb20" dense>
+                                                    </v-switch>
+                                                </v-col>
+                                            </v-row>
+                                            <v-row>
+                                                <v-col cols="auto">
+                                                    <v-switch class="ma-1" v-model="switch_rci9.isChecked" label="RCI 9"
+                                                        :loading="switch_rci9.loading" :disabled="switch_rci9.loading"
+                                                        color="secondary" @change="changed_rci9" dense>
+                                                    </v-switch>
+                                                </v-col>
+                                                <v-col cols="auto">
+                                                    <v-switch class="ma-1" v-model="switch_rci26.isChecked" label="RCI 26"
+                                                        :loading="switch_rci26.loading" :disabled="switch_rci26.loading"
+                                                        color="secondary" @change="changed_rci26" dense>
+                                                    </v-switch>
+                                                </v-col>
+                                                <v-col cols="auto">
+                                                    <v-switch class="ma-1" v-model="switch_rci52.isChecked" label="RCI 52"
+                                                        :loading="switch_rci52.loading" :disabled="switch_rci52.loading"
+                                                        color="secondary" @change="changed_rci52" dense>
                                                     </v-switch>
                                                 </v-col>
                                             </v-row>
